@@ -16,10 +16,10 @@
 
 package io.spring.initializr.generator.language.groovy;
 
+import io.spring.initializr.generator.language.TypeDeclaration;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import io.spring.initializr.generator.language.TypeDeclaration;
 
 /**
  * A {@link TypeDeclaration declaration } of a type written in Groovy.
@@ -28,11 +28,11 @@ import io.spring.initializr.generator.language.TypeDeclaration;
  */
 public class GroovyTypeDeclaration extends TypeDeclaration {
 
-	private int modifiers;
-
 	private final List<GroovyFieldDeclaration> fieldDeclarations = new ArrayList<>();
 
 	private final List<GroovyMethodDeclaration> methodDeclarations = new ArrayList<>();
+
+	private int modifiers;
 
 	GroovyTypeDeclaration(String name) {
 		super(name);

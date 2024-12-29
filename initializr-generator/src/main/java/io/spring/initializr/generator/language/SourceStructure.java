@@ -42,6 +42,10 @@ public class SourceStructure {
 		this.resourcesDirectory = rootDirectory.resolve("resources");
 	}
 
+	private static Path resolvePackage(Path directory, String packageName) {
+		return directory.resolve(packageName.replace('.', '/'));
+	}
+
 	/**
 	 * Return the root {@link Path directory} of this structure. Can be used to access
 	 * additional resources.
@@ -125,10 +129,6 @@ public class SourceStructure {
 	private void createFile(Path file) throws IOException {
 		Files.createDirectories(file.getParent());
 		Files.createFile(file);
-	}
-
-	private static Path resolvePackage(Path directory, String packageName) {
-		return directory.resolve(packageName.replace('.', '/'));
 	}
 
 }

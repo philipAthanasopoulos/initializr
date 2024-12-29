@@ -16,10 +16,10 @@
 
 package io.spring.initializr.generator.language.kotlin;
 
+import io.spring.initializr.generator.language.CompilationUnit;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import io.spring.initializr.generator.language.CompilationUnit;
 
 /**
  * A Kotlin-specific {@link CompilationUnit}.

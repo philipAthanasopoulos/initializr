@@ -16,10 +16,10 @@
 
 package io.spring.initializr.generator.language.java;
 
+import io.spring.initializr.generator.language.TypeDeclaration;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import io.spring.initializr.generator.language.TypeDeclaration;
 
 /**
  * A {@link TypeDeclaration declaration } of a type written in Java.
@@ -29,11 +29,11 @@ import io.spring.initializr.generator.language.TypeDeclaration;
  */
 public class JavaTypeDeclaration extends TypeDeclaration {
 
-	private int modifiers;
-
 	private final List<JavaFieldDeclaration> fieldDeclarations = new ArrayList<>();
 
 	private final List<JavaMethodDeclaration> methodDeclarations = new ArrayList<>();
+
+	private int modifiers;
 
 	JavaTypeDeclaration(String name) {
 		super(name);

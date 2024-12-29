@@ -1,36 +1,16 @@
-/*
- * Copyright 2012-2023 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package io.spring.initializr.generator.language.kotlin;
+package io.spring.initializr.generator.language.scala;
 
 import io.spring.initializr.generator.language.Annotatable;
 import io.spring.initializr.generator.language.AnnotationContainer;
 import io.spring.initializr.generator.language.CodeBlock;
 import io.spring.initializr.generator.language.Parameter;
+import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Declaration of a function written in Kotlin.
- *
- * @author Stephane Nicoll
- */
-public final class KotlinFunctionDeclaration implements Annotatable {
+public class ScalaMethodDeclaration implements Annotatable {
 
 	private final AnnotationContainer annotations = new AnnotationContainer();
 
@@ -38,13 +18,13 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 
 	private final String returnType;
 
-	private final List<KotlinModifier> modifiers;
+	private final int modifiers;
 
 	private final List<Parameter> parameters;
 
 	private final CodeBlock code;
 
-	private KotlinFunctionDeclaration(Builder builder, CodeBlock code) {
+	private ScalaMethodDeclaration(Builder builder, CodeBlock code) {
 		this.name = builder.name;
 		this.returnType = builder.returnType;
 		this.modifiers = builder.modifiers;
@@ -52,7 +32,7 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 		this.code = code;
 	}
 
-	public static Builder function(String name) {
+	public static Builder method(String name) {
 		return new Builder(name);
 	}
 
@@ -68,7 +48,7 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 		return this.parameters;
 	}
 
-	List<KotlinModifier> getModifiers() {
+	int getModifiers() {
 		return this.modifiers;
 	}
 
@@ -82,7 +62,7 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 	}
 
 	/**
-	 * Builder for creating a {@link KotlinFunctionDeclaration}.
+	 * Builder for creating a {@link JavaMethodDeclaration}.
 	 */
 	public static final class Builder {
 
@@ -90,16 +70,16 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 
 		private List<Parameter> parameters = new ArrayList<>();
 
-		private List<KotlinModifier> modifiers = new ArrayList<>();
+		private String returnType = "void";
 
-		private String returnType;
+		private int modifiers;
 
 		private Builder(String name) {
 			this.name = name;
 		}
 
-		public Builder modifiers(KotlinModifier... modifiers) {
-			this.modifiers = Arrays.asList(modifiers);
+		public Builder modifiers(int modifiers) {
+			this.modifiers = modifiers;
 			return this;
 		}
 
@@ -113,8 +93,8 @@ public final class KotlinFunctionDeclaration implements Annotatable {
 			return this;
 		}
 
-		public KotlinFunctionDeclaration body(CodeBlock code) {
-			return new KotlinFunctionDeclaration(this, code);
+		public ScalaMethodDeclaration body(CodeBlock code) {
+			return new ScalaMethodDeclaration(this, code);
 		}
 
 	}

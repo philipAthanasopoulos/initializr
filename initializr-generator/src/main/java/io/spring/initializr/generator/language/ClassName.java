@@ -16,13 +16,12 @@
 
 package io.spring.initializr.generator.language;
 
-import java.util.List;
-import java.util.Objects;
-
-import javax.lang.model.SourceVersion;
-
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
+
+import javax.lang.model.SourceVersion;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Type reference abstraction to refer to a {@link Class} that is not available on the
@@ -81,6 +80,41 @@ public final class ClassName {
 		return of(type.getName());
 	}
 
+	private static boolean isPrimitive(String name) {
+		return PRIMITIVE_NAMES.stream().anyMatch(name::startsWith);
+	}
+
+	private static boolean isValidClassName(String className) {
+		for (String s : className.split("\\.", -1)) {
+			String candidate = s.replace("[", "").replace("]", "");
+			if (!SourceVersion.isIdentifier(candidate)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static ClassName createClassName(String className) {
+		int i = className.lastIndexOf('.');
+		if (i != -1) {
+			return new ClassName(className.substring(0, i), className.substring(i + 1), null);
+		}
+		else {
+			String packageName = (isPrimitive(className)) ? "java.lang" : "";
+			return new ClassName(packageName, className, null);
+		}
+	}
+
+	private static void buildName(ClassName className, StringBuilder sb) {
+		if (className == null) {
+			return;
+		}
+		String typeName = (className.getEnclosingType() != null) ? "." + className.getSimpleName()
+				: className.getSimpleName();
+		sb.insert(0, typeName);
+		buildName(className.getEnclosingType(), sb);
+	}
+
 	/**
 	 * Return the fully qualified name.
 	 * @return the reflection target name
@@ -134,46 +168,11 @@ public final class ClassName {
 		return isPrimitive(getSimpleName());
 	}
 
-	private static boolean isPrimitive(String name) {
-		return PRIMITIVE_NAMES.stream().anyMatch(name::startsWith);
-	}
-
 	private String addPackageIfNecessary(String part) {
 		if (this.packageName.isEmpty() || this.packageName.equals("java.lang") && isPrimitive()) {
 			return part;
 		}
 		return this.packageName + '.' + part;
-	}
-
-	private static boolean isValidClassName(String className) {
-		for (String s : className.split("\\.", -1)) {
-			String candidate = s.replace("[", "").replace("]", "");
-			if (!SourceVersion.isIdentifier(candidate)) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	private static ClassName createClassName(String className) {
-		int i = className.lastIndexOf('.');
-		if (i != -1) {
-			return new ClassName(className.substring(0, i), className.substring(i + 1), null);
-		}
-		else {
-			String packageName = (isPrimitive(className)) ? "java.lang" : "";
-			return new ClassName(packageName, className, null);
-		}
-	}
-
-	private static void buildName(ClassName className, StringBuilder sb) {
-		if (className == null) {
-			return;
-		}
-		String typeName = (className.getEnclosingType() != null) ? "." + className.getSimpleName()
-				: className.getSimpleName();
-		sb.insert(0, typeName);
-		buildName(className.getEnclosingType(), sb);
 	}
 
 	@Override

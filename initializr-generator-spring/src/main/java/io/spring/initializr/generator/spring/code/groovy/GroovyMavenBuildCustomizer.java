@@ -41,5 +41,4 @@ class GroovyMavenBuildCustomizer implements BuildCustomizer<MavenBuild> {
 						.goal("removeTestStubs"));
 		});
 	}
-
 }

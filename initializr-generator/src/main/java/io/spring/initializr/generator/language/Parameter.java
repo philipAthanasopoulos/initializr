@@ -105,9 +105,9 @@ public final class Parameter implements Annotatable {
 
 		private final String name;
 
-		private String type;
-
 		private final AnnotationContainer annotations = new AnnotationContainer();
+
+		private String type;
 
 		Builder(String name) {
 			this.name = name;

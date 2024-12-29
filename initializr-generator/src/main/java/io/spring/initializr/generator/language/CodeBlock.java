@@ -16,15 +16,14 @@
 
 package io.spring.initializr.generator.language;
 
+import io.spring.initializr.generator.io.IndentingWriter;
+import org.springframework.util.ClassUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.StreamSupport;
-
-import io.spring.initializr.generator.io.IndentingWriter;
-
-import org.springframework.util.ClassUtils;
 
 /**
  * A fragment of code, potentially containing declarations, or statements. CodeBlocks are
@@ -71,48 +70,6 @@ public final class CodeBlock {
 		this.parts = List.copyOf(builder.parts);
 		this.args = List.copyOf(builder.args);
 		this.imports = List.copyOf(builder.imports);
-	}
-
-	/**
-	 * Return the imports this instance contributes.
-	 * @return the imports.
-	 */
-	public List<String> getImports() {
-		return this.imports;
-	}
-
-	/**
-	 * Write this instance using the specified writer.
-	 * @param writer the writer to use
-	 * @param options the formatting options to use
-	 */
-	public void write(IndentingWriter writer, FormattingOptions options) {
-		int argIndex = 0;
-		for (String part : this.parts) {
-			switch (part) {
-				case "$L" -> {
-					Object value = this.args.get(argIndex++);
-					if (value instanceof CodeBlock code) {
-						code.write(writer, options);
-					}
-					else {
-						writer.print(String.valueOf(value));
-					}
-				}
-				case "$S" -> {
-					String value = (String) this.args.get(argIndex++);
-					String valueToEmit = (value != null) ? quote(value) : "null";
-					writer.print(valueToEmit);
-				}
-				case "$T" -> {
-					String className = (String) this.args.get(argIndex++);
-					writer.print(className);
-				}
-				case "$]" -> writer.println(options.statementSeparator());
-				case "$$" -> writer.print("$");
-				default -> writer.print(part);
-			}
-		}
 	}
 
 	private static String quote(String value) {
@@ -189,6 +146,77 @@ public final class CodeBlock {
 	 */
 	public static Builder builder() {
 		return new Builder();
+	}
+
+	/**
+	 * Return the imports this instance contributes.
+	 * @return the imports.
+	 */
+	public List<String> getImports() {
+		return this.imports;
+	}
+
+	/**
+	 * Write this instance using the specified writer.
+	 * @param writer the writer to use
+	 * @param options the formatting options to use
+	 */
+	public void write(IndentingWriter writer, FormattingOptions options) {
+		int argIndex = 0;
+		for (String part : this.parts) {
+			switch (part) {
+				case "$L" -> {
+					Object value = this.args.get(argIndex++);
+					if (value instanceof CodeBlock code) {
+						code.write(writer, options);
+					}
+					else {
+						writer.print(String.valueOf(value));
+					}
+				}
+				case "$S" -> {
+					String value = (String) this.args.get(argIndex++);
+					String valueToEmit = (value != null) ? quote(value) : "null";
+					writer.print(valueToEmit);
+				}
+				case "$T" -> {
+					String className = (String) this.args.get(argIndex++);
+					writer.print(className);
+				}
+				case "$]" -> writer.println(options.statementSeparator());
+				case "$$" -> writer.print("$");
+				default -> writer.print(part);
+			}
+		}
+	}
+
+	/**
+	 * Strategy interface to customize formatting of generated code block.
+	 */
+	public interface FormattingOptions {
+
+		/**
+		 * Return the separator to use to end a statement.
+		 * @return the statement separator
+		 */
+		String statementSeparator();
+
+		/**
+		 * Return the code that represents an array for the specified values.
+		 * @param values the values of the array
+		 * @return an array defining the specified values
+		 */
+		CodeBlock arrayOf(CodeBlock... values);
+
+		/**
+		 * Return the code that represents a reference to the specified {@link ClassName}.
+		 * For instance with java, a reference to {@code com.example.Test} would be
+		 * {@code Test.class}.
+		 * @param className the class name to handle
+		 * @return a class reference to the specified class name
+		 */
+		CodeBlock classReference(ClassName className);
+
 	}
 
 	public static final class Builder {
@@ -330,35 +358,6 @@ public final class CodeBlock {
 		public CodeBlock build() {
 			return new CodeBlock(this);
 		}
-
-	}
-
-	/**
-	 * Strategy interface to customize formatting of generated code block.
-	 */
-	public interface FormattingOptions {
-
-		/**
-		 * Return the separator to use to end a statement.
-		 * @return the statement separator
-		 */
-		String statementSeparator();
-
-		/**
-		 * Return the code that represents an array for the specified values.
-		 * @param values the values of the array
-		 * @return an array defining the specified values
-		 */
-		CodeBlock arrayOf(CodeBlock... values);
-
-		/**
-		 * Return the code that represents a reference to the specified {@link ClassName}.
-		 * For instance with java, a reference to {@code com.example.Test} would be
-		 * {@code Test.class}.
-		 * @param className the class name to handle
-		 * @return a class reference to the specified class name
-		 */
-		CodeBlock classReference(ClassName className);
 
 	}
 

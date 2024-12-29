@@ -16,16 +16,12 @@
 
 package io.spring.initializr.generator.language.kotlin;
 
+import io.spring.initializr.generator.language.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-
-import io.spring.initializr.generator.language.Annotatable;
-import io.spring.initializr.generator.language.Annotation;
-import io.spring.initializr.generator.language.AnnotationContainer;
-import io.spring.initializr.generator.language.ClassName;
-import io.spring.initializr.generator.language.CodeBlock;
 
 /**
  * Declaration of a property written in Kotlin.
@@ -194,11 +190,11 @@ public final class KotlinPropertyDeclaration implements Annotatable {
 
 		private final AnnotationContainer annotations = new AnnotationContainer();
 
-		private CodeBlock code;
-
 		private final T parent;
 
 		private final Consumer<Accessor> accessorFunction;
+
+		private CodeBlock code;
 
 		private AccessorBuilder(T parent, Consumer<Accessor> accessorFunction) {
 			this.parent = parent;

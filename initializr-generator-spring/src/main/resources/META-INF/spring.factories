@@ -6,6 +6,7 @@ io.spring.initializr.generator.spring.code.SourceCodeProjectGenerationConfigurat
 io.spring.initializr.generator.spring.code.groovy.GroovyProjectGenerationConfiguration,\
 io.spring.initializr.generator.spring.code.java.JavaProjectGenerationConfiguration,\
 io.spring.initializr.generator.spring.code.kotlin.KotlinProjectGenerationConfiguration,\
+io.spring.initializr.generator.spring.code.scala.ScalaProjectGenerationConfiguration,\
 io.spring.initializr.generator.spring.configuration.ApplicationConfigurationProjectGenerationConfiguration,\
 io.spring.initializr.generator.spring.documentation.HelpDocumentProjectGenerationConfiguration,\
 io.spring.initializr.generator.spring.properties.ApplicationPropertiesProjectGenerationConfiguration,\

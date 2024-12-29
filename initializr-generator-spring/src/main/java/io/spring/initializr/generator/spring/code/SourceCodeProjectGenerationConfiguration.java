@@ -69,7 +69,5 @@ public class SourceCodeProjectGenerationConfiguration {
 					"org.springframework.boot.web.servlet.support.SpringBootServletInitializer",
 					servletInitializerCustomizers);
 		}
-
 	}
-
 }

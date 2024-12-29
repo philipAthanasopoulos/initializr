@@ -16,10 +16,10 @@
 
 package io.spring.initializr.generator.language.kotlin;
 
-import java.util.Set;
-
 import io.spring.initializr.generator.language.AbstractLanguage;
 import io.spring.initializr.generator.language.Language;
+
+import java.util.Set;
 
 /**
  * Kotlin {@link Language}.
@@ -29,17 +29,17 @@ import io.spring.initializr.generator.language.Language;
  */
 public final class KotlinLanguage extends AbstractLanguage {
 
+	/**
+	 * Kotlin {@link Language} identifier.
+	 */
+	public static final String ID = "kotlin";
+
 	// Taken from https://kotlinlang.org/docs/keyword-reference.html#hard-keywords
 	// except keywords contains `!` or `?` because they should be handled as invalid
 	// package names already
 	private static final Set<String> KEYWORDS = Set.of("package", "as", "typealias", "class", "this", "super", "val",
 			"var", "fun", "for", "null", "true", "false", "is", "in", "throw", "return", "break", "continue", "object",
 			"if", "try", "else", "while", "do", "when", "interface", "typeof");
-
-	/**
-	 * Kotlin {@link Language} identifier.
-	 */
-	public static final String ID = "kotlin";
 
 	public KotlinLanguage() {
 		this(DEFAULT_JVM_VERSION);

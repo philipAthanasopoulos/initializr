@@ -16,12 +16,12 @@
 
 package io.spring.initializr.generator.language;
 
+import io.spring.initializr.generator.language.Annotation.Builder;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
-import io.spring.initializr.generator.language.Annotation.Builder;
 
 /**
  * A container for {@linkplain Annotation annotations} defined on an annotated element.

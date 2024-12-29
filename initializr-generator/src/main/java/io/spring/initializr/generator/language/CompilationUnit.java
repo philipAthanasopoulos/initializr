@@ -16,11 +16,11 @@
 
 package io.spring.initializr.generator.language;
 
+import org.springframework.util.Assert;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.springframework.util.Assert;
 
 /**
  * A compilation unit that represents an individual source file.

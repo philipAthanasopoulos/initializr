@@ -16,9 +16,9 @@
 
 package io.spring.initializr.generator.language;
 
-import java.util.Objects;
-
 import org.springframework.core.io.support.SpringFactoriesLoader;
+
+import java.util.Objects;
 
 /**
  * A language in which a generated project can be written.
@@ -32,6 +32,15 @@ public interface Language {
 	 * The default JVM version to use if none is specified.
 	 */
 	String DEFAULT_JVM_VERSION = "1.8";
+
+	static Language forId(String id, String jvmVersion) {
+		return SpringFactoriesLoader.loadFactories(LanguageFactory.class, LanguageFactory.class.getClassLoader())
+			.stream()
+			.map((factory) -> factory.createLanguage(id, jvmVersion))
+			.filter(Objects::nonNull)
+			.findFirst()
+			.orElseThrow(() -> new IllegalStateException("Unrecognized language id '" + id + "'"));
+	}
 
 	/**
 	 * Return the language identifier.
@@ -63,14 +72,5 @@ public interface Language {
 	 * @return whether the input is a keyword
 	 */
 	boolean isKeyword(String input);
-
-	static Language forId(String id, String jvmVersion) {
-		return SpringFactoriesLoader.loadFactories(LanguageFactory.class, LanguageFactory.class.getClassLoader())
-			.stream()
-			.map((factory) -> factory.createLanguage(id, jvmVersion))
-			.filter(Objects::nonNull)
-			.findFirst()
-			.orElseThrow(() -> new IllegalStateException("Unrecognized language id '" + id + "'"));
-	}
 
 }

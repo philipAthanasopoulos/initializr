@@ -28,12 +28,9 @@ import io.spring.initializr.generator.io.IndentingWriterFactory;
 import io.spring.initializr.generator.io.SimpleIndentStrategy;
 import io.spring.initializr.generator.io.template.MustacheTemplateRenderer;
 import io.spring.initializr.generator.io.template.TemplateRenderer;
+import io.spring.initializr.generator.language.scala.ScalaLanguage;
 import io.spring.initializr.generator.project.ProjectDirectoryFactory;
-import io.spring.initializr.metadata.DependencyMetadataProvider;
-import io.spring.initializr.metadata.InitializrMetadata;
-import io.spring.initializr.metadata.InitializrMetadataBuilder;
-import io.spring.initializr.metadata.InitializrMetadataProvider;
-import io.spring.initializr.metadata.InitializrProperties;
+import io.spring.initializr.metadata.*;
 import io.spring.initializr.web.controller.CommandLineMetadataController;
 import io.spring.initializr.web.controller.DefaultProjectGenerationController;
 import io.spring.initializr.web.controller.ProjectGenerationController;
@@ -115,6 +112,13 @@ public class InitializrAutoConfiguration {
 	public InitializrMetadataProvider initializrMetadataProvider(InitializrProperties properties,
 			ObjectProvider<InitializrMetadataUpdateStrategy> initializrMetadataUpdateStrategy) {
 		InitializrMetadata metadata = InitializrMetadataBuilder.fromInitializrProperties(properties).build();
+//		metadata.getLanguages().addContent(
+//				new DefaultMetadataElement(
+//						ScalaLanguage.ID,
+//						false
+//				)
+//
+//		);
 		return new DefaultInitializrMetadataProvider(metadata,
 				initializrMetadataUpdateStrategy.getIfAvailable(() -> (current) -> current));
 	}

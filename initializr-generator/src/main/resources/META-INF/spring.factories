@@ -5,7 +5,8 @@ io.spring.initializr.generator.buildsystem.maven.MavenBuildSystemFactory
 io.spring.initializr.generator.language.LanguageFactory=\
 io.spring.initializr.generator.language.groovy.GroovyLanguageFactory,\
 io.spring.initializr.generator.language.java.JavaLanguageFactory,\
-io.spring.initializr.generator.language.kotlin.KotlinLanguageFactory
+io.spring.initializr.generator.language.kotlin.KotlinLanguageFactory,\
+io.spring.initializr.generator.language.scala.ScalaLanguageFactory
 
 io.spring.initializr.generator.packaging.PackagingFactory=\
 io.spring.initializr.generator.packaging.jar.JarPackagingFactory,\

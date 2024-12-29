@@ -1,46 +1,20 @@
-/*
- * Copyright 2012-2023 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package io.spring.initializr.generator.language.groovy;
+package io.spring.initializr.generator.language.scala;
 
 import io.spring.initializr.generator.io.IndentingWriter;
 import io.spring.initializr.generator.io.IndentingWriterFactory;
 import io.spring.initializr.generator.language.*;
-import io.spring.initializr.generator.language.CodeBlock.FormattingOptions;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-/**
- * A {@link SourceCodeWriter} that writes {@link SourceCode} in Groovy.
- *
- * @author Stephane Nicoll
- * @author Matt Berteaux
- */
-public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode> {
-
-	private static final FormattingOptions FORMATTING_OPTIONS = new GroovyFormattingOptions();
+public class ScalaSourceCodeWriter implements SourceCodeWriter<ScalaSourceCode> {
 
 	private static final Map<Predicate<Integer>, String> TYPE_MODIFIERS;
 
@@ -50,6 +24,7 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 
 	static {
 		Map<Predicate<Integer>, String> typeModifiers = new LinkedHashMap<>();
+		typeModifiers.put(Modifier::isPublic, "public");
 		typeModifiers.put(Modifier::isProtected, "protected");
 		typeModifiers.put(Modifier::isPrivate, "private");
 		typeModifiers.put(Modifier::isAbstract, "abstract");
@@ -74,20 +49,21 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 
 	private final IndentingWriterFactory indentingWriterFactory;
 
-	public GroovySourceCodeWriter(IndentingWriterFactory indentingWriterFactory) {
+	public ScalaSourceCodeWriter(IndentingWriterFactory indentingWriterFactory) {
 		this.indentingWriterFactory = indentingWriterFactory;
 	}
 
 	@Override
-	public void writeTo(SourceStructure structure, GroovySourceCode sourceCode) throws IOException {
-		for (GroovyCompilationUnit compilationUnit : sourceCode.getCompilationUnits()) {
+	public void writeTo(SourceStructure structure, ScalaSourceCode sourceCode) throws IOException {
+		for (ScalaCompilationUnit compilationUnit : sourceCode.getCompilationUnits()) {
 			writeTo(structure, compilationUnit);
 		}
 	}
 
-	private void writeTo(SourceStructure structure, GroovyCompilationUnit compilationUnit) throws IOException {
+	private void writeTo(SourceStructure structure, ScalaCompilationUnit compilationUnit) throws IOException {
 		Path output = structure.createSourceFile(compilationUnit.getPackageName(), compilationUnit.getName());
-		try (IndentingWriter writer = this.indentingWriterFactory.createIndentingWriter("groovy",
+		Files.createDirectories(output.getParent());
+		try (IndentingWriter writer = this.indentingWriterFactory.createIndentingWriter("scala",
 				Files.newBufferedWriter(output))) {
 			writer.println("package " + compilationUnit.getPackageName());
 			writer.println();
@@ -98,8 +74,8 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 				}
 				writer.println();
 			}
-			for (GroovyTypeDeclaration type : compilationUnit.getTypeDeclarations()) {
-				writeAnnotations(writer, type);
+			for (ScalaTypeDeclaration type : compilationUnit.getTypeDeclarations()) {
+				writeAnnotations(writer, type, writer::println);
 				writeModifiers(writer, TYPE_MODIFIERS, type.getModifiers());
 				writer.print("class " + type.getName());
 				if (type.getExtends() != null) {
@@ -107,18 +83,18 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 				}
 				writer.println(" {");
 				writer.println();
-				List<GroovyFieldDeclaration> fieldDeclarations = type.getFieldDeclarations();
+				List<ScalaFieldDeclaration> fieldDeclarations = type.getFieldDeclarations();
 				if (!fieldDeclarations.isEmpty()) {
 					writer.indented(() -> {
-						for (GroovyFieldDeclaration fieldDeclaration : fieldDeclarations) {
+						for (ScalaFieldDeclaration fieldDeclaration : fieldDeclarations) {
 							writeFieldDeclaration(writer, fieldDeclaration);
 						}
 					});
 				}
-				List<GroovyMethodDeclaration> methodDeclarations = type.getMethodDeclarations();
+				List<ScalaMethodDeclaration> methodDeclarations = type.getMethodDeclarations();
 				if (!methodDeclarations.isEmpty()) {
 					writer.indented(() -> {
-						for (GroovyMethodDeclaration methodDeclaration : methodDeclarations) {
+						for (ScalaMethodDeclaration methodDeclaration : methodDeclarations) {
 							writeMethodDeclaration(writer, methodDeclaration);
 						}
 					});
@@ -130,7 +106,7 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 
 	private void writeAnnotations(IndentingWriter writer, Annotatable annotatable, Runnable separator) {
 		annotatable.annotations().values().forEach((annotation) -> {
-			annotation.write(writer, FORMATTING_OPTIONS);
+			annotation.write(writer, CodeBlock.JAVA_FORMATTING_OPTIONS);
 			separator.run();
 		});
 	}
@@ -139,27 +115,24 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 		writeAnnotations(writer, annotatable, writer::println);
 	}
 
-	private void writeFieldDeclaration(IndentingWriter writer, GroovyFieldDeclaration fieldDeclaration) {
+	private void writeFieldDeclaration(IndentingWriter writer, ScalaFieldDeclaration fieldDeclaration) {
 		writeAnnotations(writer, fieldDeclaration);
 		writeModifiers(writer, FIELD_MODIFIERS, fieldDeclaration.getModifiers());
-		writer.print(getUnqualifiedName(fieldDeclaration.getReturnType()));
-		writer.print(" ");
-		writer.print(fieldDeclaration.getName());
+		writer.print("val " + fieldDeclaration.getName() + ": " + getUnqualifiedName(fieldDeclaration.getReturnType()));
 		if (fieldDeclaration.isInitialized()) {
-			writer.print(" = ");
-			writer.print(String.valueOf(fieldDeclaration.getValue()));
+			writer.print(" = " + String.valueOf(fieldDeclaration.getValue()));
 		}
 		writer.println();
 		writer.println();
 	}
 
-	private void writeMethodDeclaration(IndentingWriter writer, GroovyMethodDeclaration methodDeclaration) {
+	private void writeMethodDeclaration(IndentingWriter writer, ScalaMethodDeclaration methodDeclaration) {
 		writeAnnotations(writer, methodDeclaration);
 		writeModifiers(writer, METHOD_MODIFIERS, methodDeclaration.getModifiers());
-		writer.print(getUnqualifiedName(methodDeclaration.getReturnType()) + " " + methodDeclaration.getName() + "(");
+		writer.print("def " + methodDeclaration.getName() + "(");
 		writeParameters(writer, methodDeclaration.getParameters());
-		writer.println(") {");
-		writer.indented(() -> methodDeclaration.getCode().write(writer, FORMATTING_OPTIONS));
+		writer.println("): " + getUnqualifiedName(methodDeclaration.getReturnType()) + " = {");
+		writer.indented(() -> methodDeclaration.getCode().write(writer, CodeBlock.JAVA_FORMATTING_OPTIONS));
 		writer.println("}");
 		writer.println();
 	}
@@ -172,7 +145,7 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 		while (it.hasNext()) {
 			Parameter parameter = it.next();
 			writeAnnotations(writer, parameter, () -> writer.print(" "));
-			writer.print(getUnqualifiedName(parameter.getType()) + " " + parameter.getName());
+			writer.print(parameter.getName() + ": " + getUnqualifiedName(parameter.getType()));
 			if (it.hasNext()) {
 				writer.print(", ");
 			}
@@ -184,7 +157,7 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 		String modifiers = availableModifiers.entrySet()
 			.stream()
 			.filter((entry) -> entry.getKey().test(declaredModifiers))
-			.map(Entry::getValue)
+			.map(Map.Entry::getValue)
 			.collect(Collectors.joining(" "));
 		if (!modifiers.isEmpty()) {
 			writer.print(modifiers);
@@ -192,16 +165,17 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 		}
 	}
 
-	private Set<String> determineImports(GroovyCompilationUnit compilationUnit) {
+	private Set<String> determineImports(ScalaCompilationUnit compilationUnit) {
 		List<String> imports = new ArrayList<>();
-		for (GroovyTypeDeclaration typeDeclaration : compilationUnit.getTypeDeclarations()) {
+		for (ScalaTypeDeclaration typeDeclaration : compilationUnit.getTypeDeclarations()) {
 			imports.add(typeDeclaration.getExtends());
+
 			imports.addAll(appendImports(typeDeclaration.annotations().values(), Annotation::getImports));
-			for (GroovyFieldDeclaration fieldDeclaration : typeDeclaration.getFieldDeclarations()) {
+			for (ScalaFieldDeclaration fieldDeclaration : typeDeclaration.getFieldDeclarations()) {
 				imports.add(fieldDeclaration.getReturnType());
 				imports.addAll(appendImports(fieldDeclaration.annotations().values(), Annotation::getImports));
 			}
-			for (GroovyMethodDeclaration methodDeclaration : typeDeclaration.getMethodDeclarations()) {
+			for (ScalaMethodDeclaration methodDeclaration : typeDeclaration.getMethodDeclarations()) {
 				imports.add(methodDeclaration.getReturnType());
 				imports.addAll(appendImports(methodDeclaration.annotations().values(), Annotation::getImports));
 				for (Parameter parameter : methodDeclaration.getParameters()) {
@@ -234,25 +208,6 @@ public class GroovySourceCodeWriter implements SourceCodeWriter<GroovySourceCode
 		}
 		String packageName = name.substring(0, name.lastIndexOf('.'));
 		return !"java.lang".equals(packageName) && !compilationUnit.getPackageName().equals(packageName);
-	}
-
-	static class GroovyFormattingOptions implements FormattingOptions {
-
-		@Override
-		public String statementSeparator() {
-			return "";
-		}
-
-		@Override
-		public CodeBlock arrayOf(CodeBlock... values) {
-			return CodeBlock.of("[ $L ]", CodeBlock.join(Arrays.asList(values), ", "));
-		}
-
-		@Override
-		public CodeBlock classReference(ClassName className) {
-			return CodeBlock.of("$T", className);
-		}
-
 	}
 
 }

@@ -20,6 +20,10 @@ initializr:
     - name: Groovy
       id: groovy
       default: false
+    - name: Scala
+      id: scala
+      default: false
+
   javaVersions:
     - id: 17
       default: true

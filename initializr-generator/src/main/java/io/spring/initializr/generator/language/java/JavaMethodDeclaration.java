@@ -16,14 +16,14 @@
 
 package io.spring.initializr.generator.language.java;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import io.spring.initializr.generator.language.Annotatable;
 import io.spring.initializr.generator.language.AnnotationContainer;
 import io.spring.initializr.generator.language.CodeBlock;
 import io.spring.initializr.generator.language.Parameter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Declaration of a method written in Java.

@@ -16,21 +16,13 @@
 
 package io.spring.initializr.generator.language;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import io.spring.initializr.generator.io.IndentingWriter;
 import io.spring.initializr.generator.language.CodeBlock.FormattingOptions;
-
 import org.springframework.util.ClassUtils;
+
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * An annotation.
@@ -50,6 +42,15 @@ public final class Annotation {
 		this.className = builder.className;
 		this.attributes = List.copyOf(builder.attributes.values());
 		this.imports = List.copyOf(builder.imports);
+	}
+
+	/**
+	 * Initialize an annotation {@link Builder} for the specified class name.
+	 * @param className the class name of the annotation
+	 * @return a builder
+	 */
+	public static Builder of(ClassName className) {
+		return new Builder(className);
 	}
 
 	/**
@@ -78,21 +79,118 @@ public final class Annotation {
 	}
 
 	/**
-	 * Initialize an annotation {@link Builder} for the specified class name.
-	 * @param className the class name of the annotation
-	 * @return a builder
-	 */
-	public static Builder of(ClassName className) {
-		return new Builder(className);
-	}
-
-	/**
 	 * Write this annotation using the specified writer.
 	 * @param writer the writer to use
 	 * @param options the formatting options to use
 	 */
 	public void write(IndentingWriter writer, FormattingOptions options) {
 		new AnnotationWriter(writer, options).write(this);
+	}
+
+	private enum AttributeType {
+
+		PRIMITIVE,
+
+		STRING,
+
+		CLASS() {
+			@Override
+			protected Collection<String> getImports(Object value) {
+				if (value instanceof Class type) {
+					return List.of(type.getName());
+				}
+				else if (value instanceof ClassName name) {
+					return List.of(name.getName());
+				}
+				return super.getImports(value);
+			}
+		},
+
+		ENUM() {
+			@Override
+			protected Collection<String> getImports(Object value) {
+				if (value instanceof Enum enumeration) {
+					return List.of(enumeration.getClass().getName());
+				}
+				return super.getImports(value);
+			}
+		},
+
+		ANNOTATION() {
+			@Override
+			protected Collection<String> getImports(Object value) {
+				if (value instanceof Annotation annotation) {
+					return annotation.getImports();
+				}
+				return super.getImports(value);
+			}
+		},
+
+		CODE {
+			@Override
+			protected boolean isCompatible(AttributeType attributeType) {
+				return true;
+			}
+		};
+
+		static AttributeType getMostSpecificType(AttributeType left, AttributeType right) {
+			if (!left.isCompatible(right)) {
+				throw new IllegalArgumentException(
+						"Incompatible type. '%s' is not compatible with '%s'".formatted(left, right));
+			}
+			return (left == CODE) ? right : left;
+		}
+
+		static AttributeType of(Object... values) {
+			List<AttributeType> types = Arrays.stream(values)
+				.map(AttributeType::determineAttributeType)
+				.filter((type) -> type != CODE)
+				.distinct()
+				.toList();
+			if (types.size() > 1) {
+				throw new IllegalArgumentException("Parameter value must not have mixed types, got ["
+						+ types.stream().map(AttributeType::name).collect(Collectors.joining(", ")) + "]");
+			}
+			return (types.size() == 1) ? types.get(0) : CODE;
+		}
+
+		private static AttributeType determineAttributeType(Object value) {
+			if (ClassUtils.isPrimitiveOrWrapper(value.getClass())) {
+				return PRIMITIVE;
+			}
+			else if (value instanceof CharSequence) {
+				return STRING;
+			}
+			else if (value instanceof Class<?> || value instanceof ClassName) {
+				return CLASS;
+			}
+			else if (value instanceof Enum<?>) {
+				return ENUM;
+			}
+			else if (value instanceof Annotation) {
+				return ANNOTATION;
+			}
+			else if (value instanceof CodeBlock) {
+				return CODE;
+			}
+			else {
+				throw new IllegalArgumentException(
+						"Incompatible type. Found: '%s', required: primitive, String, Class, an Enum, an Annotation, or a CodeBlock"
+							.formatted(value.getClass().getName()));
+			}
+		}
+
+		protected boolean isCompatible(AttributeType attributeType) {
+			return this.equals(attributeType) || attributeType == AttributeType.CODE;
+		}
+
+		protected Collection<String> getImports(Object value) {
+			if (value instanceof CodeBlock codeBlock) {
+				return codeBlock.getImports();
+			}
+			return Collections.emptyList();
+		}
+
 	}
 
 	/**
@@ -207,112 +305,6 @@ public final class Annotation {
 
 		public List<Object> getValues() {
 			return this.values;
-		}
-
-	}
-
-	private enum AttributeType {
-
-		PRIMITIVE,
-
-		STRING,
-
-		CLASS() {
-			@Override
-			protected Collection<String> getImports(Object value) {
-				if (value instanceof Class type) {
-					return List.of(type.getName());
-				}
-				else if (value instanceof ClassName name) {
-					return List.of(name.getName());
-				}
-				return super.getImports(value);
-			}
-		},
-
-		ENUM() {
-			@Override
-			protected Collection<String> getImports(Object value) {
-				if (value instanceof Enum enumeration) {
-					return List.of(enumeration.getClass().getName());
-				}
-				return super.getImports(value);
-			}
-		},
-
-		ANNOTATION() {
-			@Override
-			protected Collection<String> getImports(Object value) {
-				if (value instanceof Annotation annotation) {
-					return annotation.getImports();
-				}
-				return super.getImports(value);
-			}
-		},
-
-		CODE {
-			@Override
-			protected boolean isCompatible(AttributeType attributeType) {
-				return true;
-			}
-		};
-
-		protected boolean isCompatible(AttributeType attributeType) {
-			return this.equals(attributeType) || attributeType == AttributeType.CODE;
-		}
-
-		protected Collection<String> getImports(Object value) {
-			if (value instanceof CodeBlock codeBlock) {
-				return codeBlock.getImports();
-			}
-			return Collections.emptyList();
-		}
-
-		static AttributeType getMostSpecificType(AttributeType left, AttributeType right) {
-			if (!left.isCompatible(right)) {
-				throw new IllegalArgumentException(
-						"Incompatible type. '%s' is not compatible with '%s'".formatted(left, right));
-			}
-			return (left == CODE) ? right : left;
-		}
-
-		static AttributeType of(Object... values) {
-			List<AttributeType> types = Arrays.stream(values)
-				.map(AttributeType::determineAttributeType)
-				.filter((type) -> type != CODE)
-				.distinct()
-				.toList();
-			if (types.size() > 1) {
-				throw new IllegalArgumentException("Parameter value must not have mixed types, got ["
-						+ types.stream().map(AttributeType::name).collect(Collectors.joining(", ")) + "]");
-			}
-			return (types.size() == 1) ? types.get(0) : CODE;
-		}
-
-		private static AttributeType determineAttributeType(Object value) {
-			if (ClassUtils.isPrimitiveOrWrapper(value.getClass())) {
-				return PRIMITIVE;
-			}
-			else if (value instanceof CharSequence) {
-				return STRING;
-			}
-			else if (value instanceof Class<?> || value instanceof ClassName) {
-				return CLASS;
-			}
-			else if (value instanceof Enum<?>) {
-				return ENUM;
-			}
-			else if (value instanceof Annotation) {
-				return ANNOTATION;
-			}
-			else if (value instanceof CodeBlock) {
-				return CODE;
-			}
-			else {
-				throw new IllegalArgumentException(
-						"Incompatible type. Found: '%s', required: primitive, String, Class, an Enum, an Annotation, or a CodeBlock"
-							.formatted(value.getClass().getName()));
-			}
 		}
 
 	}

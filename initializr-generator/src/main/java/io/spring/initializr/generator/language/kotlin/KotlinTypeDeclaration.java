@@ -16,11 +16,11 @@
 
 package io.spring.initializr.generator.language.kotlin;
 
+import io.spring.initializr.generator.language.TypeDeclaration;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import io.spring.initializr.generator.language.TypeDeclaration;
 
 /**
  * A {@link TypeDeclaration declaration } of a type written in Kotlin.
@@ -29,11 +29,11 @@ import io.spring.initializr.generator.language.TypeDeclaration;
  */
 public class KotlinTypeDeclaration extends TypeDeclaration {
 
-	private List<KotlinModifier> modifiers = new ArrayList<>();
-
 	private final List<KotlinPropertyDeclaration> propertyDeclarations = new ArrayList<>();
 
 	private final List<KotlinFunctionDeclaration> functionDeclarations = new ArrayList<>();
+
+	private List<KotlinModifier> modifiers = new ArrayList<>();
 
 	KotlinTypeDeclaration(String name) {
 		super(name);

@@ -16,10 +16,10 @@
 
 package io.spring.initializr.generator.language.java;
 
-import javax.lang.model.SourceVersion;
-
 import io.spring.initializr.generator.language.AbstractLanguage;
 import io.spring.initializr.generator.language.Language;
+
+import javax.lang.model.SourceVersion;
 
 /**
  * Java {@link Language}.
