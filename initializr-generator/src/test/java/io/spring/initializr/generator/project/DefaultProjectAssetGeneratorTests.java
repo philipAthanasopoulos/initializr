@@ -26,6 +26,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.io.CleanupMode.NEVER;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -38,7 +39,7 @@ import static org.mockito.Mockito.verify;
 class DefaultProjectAssetGeneratorTests {
 
 	@Test
-	void generationWithExplicitFactoryDoesNotLookupBean(@TempDir Path tempDir) throws IOException {
+	void generationWithExplicitFactoryDoesNotLookupBean(@TempDir(cleanup = NEVER) Path tempDir) throws IOException {
 		ProjectDescription description = new MutableProjectDescription();
 		ProjectDirectoryFactory factory = mock(ProjectDirectoryFactory.class);
 		Path expected = tempDir.resolve("does-not-exist");
@@ -52,10 +53,11 @@ class DefaultProjectAssetGeneratorTests {
 			assertThat(expected).exists().isDirectory();
 			verify(factory).createProjectDirectory(description);
 		}
+		System.out.println(tempDir.toAbsolutePath());
 	}
 
 	@Test
-	void generationWithoutExplicitFactoryLookupsBean(@TempDir Path tempDir) throws IOException {
+	void generationWithoutExplicitFactoryLookupsBean(@TempDir(cleanup = NEVER) Path tempDir) throws IOException {
 		ProjectDescription description = new MutableProjectDescription();
 		ProjectDirectoryFactory factory = mock(ProjectDirectoryFactory.class);
 		Path expected = tempDir.resolve("does-not-exist");
@@ -86,7 +88,7 @@ class DefaultProjectAssetGeneratorTests {
 	}
 
 	@Test
-	void generationWithBaseDirCreatesBaseDirStructure(@TempDir Path tempDir) throws IOException {
+	void generationWithBaseDirCreatesBaseDirStructure(@TempDir(cleanup = NEVER) Path tempDir) throws IOException {
 		MutableProjectDescription description = new MutableProjectDescription();
 		description.setBaseDirectory("my-project");
 		ProjectDirectoryFactory factory = mock(ProjectDirectoryFactory.class);
@@ -102,6 +104,7 @@ class DefaultProjectAssetGeneratorTests {
 			assertThat(rootDir.resolve("my-project")).exists().isDirectory();
 			verify(factory).createProjectDirectory(description);
 		}
+		System.out.println(tempDir.toAbsolutePath());
 	}
 
 }

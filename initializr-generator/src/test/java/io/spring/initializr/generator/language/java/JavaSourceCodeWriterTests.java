@@ -29,12 +29,9 @@ import java.util.UUID;
 import java.util.function.Consumer;
 
 import io.spring.initializr.generator.io.IndentingWriterFactory;
+import io.spring.initializr.generator.language.*;
 import io.spring.initializr.generator.language.Annotation.Builder;
-import io.spring.initializr.generator.language.ClassName;
-import io.spring.initializr.generator.language.CodeBlock;
-import io.spring.initializr.generator.language.Language;
-import io.spring.initializr.generator.language.Parameter;
-import io.spring.initializr.generator.language.SourceStructure;
+import net.bytebuddy.utility.JavaType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -119,8 +116,61 @@ class JavaSourceCodeWriterTests {
 			.parameters(Parameter.of("value", String.class))
 			.body(CodeBlock.ofStatement("return value.trim()")));
 		List<String> lines = writeSingleType(sourceCode, "com/example/Test.java");
+
 		assertThat(lines).containsExactly("package com.example;", "", "class Test {", "",
 				"    public String trim(String value) {", "        return value.trim();", "    }", "", "}");
+	}
+
+	@Test
+	//TODO remove when done testing
+	void testEntityClassCreation() throws IOException {
+		JavaSourceCode sourceCode = new JavaSourceCode();
+
+		//User class
+		JavaCompilationUnit userCompilationUnit = sourceCode.createCompilationUnit("com.example.model", "User");
+		JavaTypeDeclaration userClass = userCompilationUnit.createTypeDeclaration("User");
+		userClass.annotations().add(ClassName.of("javax.persistence.Entity"));
+		userClass.annotations().add(ClassName.of("lombok.Data"));
+		JavaFieldDeclaration firstNameField = JavaFieldDeclaration.field("id")
+						.modifiers(Modifier.PRIVATE)
+						.returning("java.lang.Long");
+		firstNameField.annotations().add(ClassName.of("javax.persistence.Id"));
+		JavaFieldDeclaration lastName = JavaFieldDeclaration.field("lastName")
+				.returning("java.lang.String");
+		userClass.addFieldDeclaration(firstNameField);
+		userClass.addFieldDeclaration(lastName);
+		writeSingleType(sourceCode, "com/example/model/User.java").forEach(System.out::println);
+
+		//User Repository
+		JavaCompilationUnit userRepositoryCompilationUnit = sourceCode.createCompilationUnit("com.example.repositories","UserRepository");
+		JavaTypeDeclaration userRepositoryTypeDeclaration = userRepositoryCompilationUnit.createTypeDeclaration("UserRepository");
+		userRepositoryTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Repository"));
+		userRepositoryTypeDeclaration.extend("org.springframework.data.jpa.repository.JpaRepository");
+		writeSingleType(sourceCode, "com/example/repositories/UserRepository.java").forEach(System.out::println);
+
+		//User Service
+		JavaCompilationUnit userServiceCompilationUnit = sourceCode.createCompilationUnit("com.example.services", "UserService");
+		JavaTypeDeclaration userServiceClass = userServiceCompilationUnit.createTypeDeclaration("UserService");
+		userServiceClass.annotations().add(ClassName.of("org.springframework.stereotype.Service"));
+		JavaFieldDeclaration userRepositoryField = JavaFieldDeclaration
+				.field("userRepository")
+				.modifiers(Modifier.PRIVATE)
+				.modifiers(Modifier.FINAL)
+				.returning("com.example.repositories.UserRepository");
+		userServiceClass.addFieldDeclaration(userRepositoryField);
+		writeSingleType(sourceCode, "com/example/services/UserService.java").forEach(System.out::println);
+
+		//User Controller
+		JavaCompilationUnit userControllerCompilationUnit = sourceCode.createCompilationUnit("com.example.controllers", "UserController");
+		JavaTypeDeclaration userControllerClass = userControllerCompilationUnit.createTypeDeclaration("UserController");
+		userControllerClass.annotations().add(ClassName.of("org.springframework.stereotype.Controller"));
+		JavaFieldDeclaration userServiceFieldDeclaration = JavaFieldDeclaration
+				.field("userService")
+				.modifiers(Modifier.PRIVATE)
+				.modifiers(Modifier.FINAL)
+				.returning("com.example.services.UserService");
+		userControllerClass.addFieldDeclaration(userServiceFieldDeclaration);
+		writeSingleType(sourceCode, "com/example/controllers/UserController.java").forEach(System.out::println);
 	}
 
 	@Test
@@ -301,6 +351,7 @@ class JavaSourceCodeWriterTests {
 				"import com.example.stereotype.Service;", "", "class Test {", "",
 				"    void something(@Service MyService service) {", "    }", "", "}");
 	}
+
 
 	private List<String> writeSingleType(JavaSourceCode sourceCode, String location) throws IOException {
 		Path source = writeSourceCode(sourceCode).resolve(location);

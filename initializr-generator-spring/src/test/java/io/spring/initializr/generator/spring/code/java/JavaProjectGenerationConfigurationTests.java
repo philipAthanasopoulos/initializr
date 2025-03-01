@@ -19,6 +19,7 @@ package io.spring.initializr.generator.spring.code.java;
 import java.nio.file.Path;
 
 import io.spring.initializr.generator.buildsystem.maven.MavenBuildSystem;
+import io.spring.initializr.generator.language.Language;
 import io.spring.initializr.generator.language.java.JavaLanguage;
 import io.spring.initializr.generator.packaging.war.WarPackaging;
 import io.spring.initializr.generator.project.MutableProjectDescription;
@@ -28,9 +29,11 @@ import io.spring.initializr.generator.test.project.ProjectStructure;
 import io.spring.initializr.generator.version.Version;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.io.CleanupMode.NEVER;
 
 /**
  * Tests for {@link JavaProjectGenerationConfiguration}.
@@ -42,7 +45,7 @@ class JavaProjectGenerationConfigurationTests {
 	private ProjectAssetTester projectTester;
 
 	@BeforeEach
-	void setup(@TempDir Path directory) {
+	void setup(@TempDir(cleanup = NEVER) Path directory) {
 		this.projectTester = new ProjectAssetTester().withIndentingWriterFactory()
 			.withConfiguration(SourceCodeProjectGenerationConfiguration.class, JavaProjectGenerationConfiguration.class)
 			.withDirectory(directory)
@@ -86,6 +89,7 @@ class JavaProjectGenerationConfigurationTests {
 					"public class ServletInitializer extends SpringBootServletInitializer {", "", "    @Override",
 					"    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {",
 					"        return application.sources(MyDemoApplication.class);", "    }", "", "}");
+		System.out.println(project.getProjectDirectory().toAbsolutePath());
 	}
 
 	@Test

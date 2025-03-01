@@ -30,6 +30,7 @@ import org.springframework.util.FileCopyUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.junit.jupiter.api.io.CleanupMode.NEVER;
 
 /**
  * Tests for {@link JvmModuleAssert}.
@@ -41,19 +42,19 @@ class JvmModuleAssertTests {
 	private static final JavaLanguage JAVA_LANGUAGE = new JavaLanguage();
 
 	@Test
-	void hasMainPackage(@TempDir Path root) throws IOException {
+	void hasMainPackage(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		Files.createDirectories(root.resolve("src/main/java/com/example"));
 		assertThat(forJavaProject(root)).hasMainPackage("com.example");
 	}
 
 	@Test
-	void hasMainSource(@TempDir Path root) throws IOException {
+	void hasMainSource(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/main/java/com/example/Test.java");
 		assertThat(forJavaProject(root)).hasMainSource("com.example", "Test");
 	}
 
 	@Test
-	void hasMainSourceWithNonMatchingExtension(@TempDir Path root) throws IOException {
+	void hasMainSourceWithNonMatchingExtension(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/main/java/com/example/Test.other");
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).hasMainSource("com.example", "Test"))
@@ -61,7 +62,7 @@ class JvmModuleAssertTests {
 	}
 
 	@Test
-	void hasMainSourceWithNonMatchingSourceDir(@TempDir Path root) throws IOException {
+	void hasMainSourceWithNonMatchingSourceDir(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/main/groovy/com/example/Test.java");
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).hasMainSource("com.example", "Test"))
@@ -69,43 +70,43 @@ class JvmModuleAssertTests {
 	}
 
 	@Test
-	void mainSource(@TempDir Path root) throws IOException {
+	void mainSource(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFileFrom("import com.example.Test;", root.resolve("src/main/java/com/acme/Test.java"));
 		assertThat(forJavaProject(root)).mainSource("com.acme", "Test").containsOnlyOnce("import");
 	}
 
 	@Test
-	void mainSourceWithMissingSource(@TempDir Path root) {
+	void mainSourceWithMissingSource(@TempDir(cleanup = NEVER) Path root) {
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).mainSource("com.acme", "Test"));
 	}
 
 	@Test
-	void hasMainResource(@TempDir Path root) throws IOException {
+	void hasMainResource(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/main/resources/project/sample.xml");
 		assertThat(forJavaProject(root)).hasMainResource("project/sample.xml");
 	}
 
 	@Test
-	void hasMainResourceWithMissingResource(@TempDir Path root) {
+	void hasMainResourceWithMissingResource(@TempDir(cleanup = NEVER) Path root) {
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).hasMainResource("project/sample.xml"));
 	}
 
 	@Test
-	void hasTestPackage(@TempDir Path root) throws IOException {
+	void hasTestPackage(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		Files.createDirectories(root.resolve("src/test/java/com/example"));
 		assertThat(forJavaProject(root)).hasTestPackage("com.example");
 	}
 
 	@Test
-	void hasTestSource(@TempDir Path root) throws IOException {
+	void hasTestSource(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/test/java/com/example/Test.java");
 		assertThat(forJavaProject(root)).hasTestSource("com.example", "Test");
 	}
 
 	@Test
-	void hasTestSourceWithNonMatchingExtension(@TempDir Path root) throws IOException {
+	void hasTestSourceWithNonMatchingExtension(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/test/java/com/example/Test.other");
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).hasTestSource("com.example", "Test"))
@@ -113,7 +114,7 @@ class JvmModuleAssertTests {
 	}
 
 	@Test
-	void hasTestSourceWithNonMatchingSourceDir(@TempDir Path root) throws IOException {
+	void hasTestSourceWithNonMatchingSourceDir(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFile(root, "src/test/groovy/com/example/Test.java");
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).hasTestSource("com.example", "Test"))
@@ -121,13 +122,13 @@ class JvmModuleAssertTests {
 	}
 
 	@Test
-	void testSource(@TempDir Path root) throws IOException {
+	void testSource(@TempDir(cleanup = NEVER) Path root) throws IOException {
 		createFileFrom("@Test", root.resolve("src/test/java/com/acme/DemoTests.java"));
 		assertThat(forJavaProject(root)).testSource("com.acme", "DemoTests").containsOnlyOnce("@Test");
 	}
 
 	@Test
-	void testSourceWithMissingSource(@TempDir Path root) {
+	void testSourceWithMissingSource(@TempDir(cleanup = NEVER) Path root) {
 		assertThatExceptionOfType(AssertionError.class)
 			.isThrownBy(() -> assertThat(forJavaProject(root)).testSource("com.acme", "DemoTests"));
 	}
