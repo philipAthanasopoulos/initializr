@@ -34,6 +34,8 @@ public class TypeDeclaration implements Annotatable {
 
 	private String extendedClassName;
 
+	private List<String> extendedClassNameGenerics = Collections.emptyList();
+
 	private List<String> implementsClassNames = Collections.emptyList();
 
 	/**
@@ -68,6 +70,10 @@ public class TypeDeclaration implements Annotatable {
 		this.implementsClassNames = List.of(names);
 	}
 
+	public void extendedGenerics(String... names){
+		this.extendedClassNameGenerics = List.of(names);
+	}
+
 	@Override
 	public AnnotationContainer annotations() {
 		return this.annotations;
@@ -80,6 +86,8 @@ public class TypeDeclaration implements Annotatable {
 	public String getExtends() {
 		return this.extendedClassName;
 	}
+
+	public List<String> getExtendedClassNameGenerics(){return this.extendedClassNameGenerics;}
 
 	public List<String> getImplements() {
 		return this.implementsClassNames;

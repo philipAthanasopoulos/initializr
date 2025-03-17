@@ -204,6 +204,7 @@ class BuildComplianceTests extends AbstractComplianceTests {
 			description.addDependency("web", MetadataBuildItemMapper.toDependency(WEB));
 			description.addDependency("data-jpa", MetadataBuildItemMapper.toDependency(dataJpa));
 		}, metadata);
+
 		String path = "project/" + build + "/annotation-processor-dependency-" + getAssertFileName(fileName);
 		assertThat(project).textFile(fileName).as("Resource " + path).hasSameContentAs(new ClassPathResource(path));
 	}
