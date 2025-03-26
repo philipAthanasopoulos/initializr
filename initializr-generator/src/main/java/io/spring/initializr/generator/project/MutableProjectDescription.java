@@ -16,9 +16,7 @@
 
 package io.spring.initializr.generator.project;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import io.spring.initializr.generator.buildsystem.BuildSystem;
 import io.spring.initializr.generator.buildsystem.Dependency;
@@ -61,6 +59,13 @@ public class MutableProjectDescription implements ProjectDescription {
 
 	private String baseDirectory;
 
+	private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
+
+
+	public void setDomainClassDescriptions(List<DomainClassDescription> domainClassDescriptions) {
+		this.domainClassDescriptions = domainClassDescriptions;
+	}
+
 	/**
 	 * Creates a new instance.
 	 */
@@ -85,6 +90,7 @@ public class MutableProjectDescription implements ProjectDescription {
 		this.applicationName = source.getApplicationName();
 		this.packageName = source.getPackageName();
 		this.baseDirectory = source.getBaseDirectory();
+		this.domainClassDescriptions = source.getDomainClassDescriptions();
 	}
 
 	@Override
@@ -278,6 +284,11 @@ public class MutableProjectDescription implements ProjectDescription {
 	@Override
 	public String getBaseDirectory() {
 		return this.baseDirectory;
+	}
+
+	@Override
+	public List<DomainClassDescription> getDomainClassDescriptions() {
+		return this.domainClassDescriptions;
 	}
 
 	/**

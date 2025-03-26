@@ -1,4 +1,4 @@
-package io.spring.initializr.generator.spring.code;
+package io.spring.initializr.generator.project;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ public class DomainClassDescription {
 
     private String className;
     private List<FieldDescription> fields;
+
+    public DomainClassDescription(){}
 
     public DomainClassDescription(String className, List<FieldDescription> fields) {
         this.className = className;

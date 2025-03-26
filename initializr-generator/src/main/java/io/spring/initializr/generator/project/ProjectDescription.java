@@ -16,6 +16,7 @@
 
 package io.spring.initializr.generator.project;
 
+import java.util.List;
 import java.util.Map;
 
 import io.spring.initializr.generator.buildsystem.BuildSystem;
@@ -118,5 +119,7 @@ public interface ProjectDescription {
 	 * @return the base directory
 	 */
 	String getBaseDirectory();
+
+	List<DomainClassDescription> getDomainClassDescriptions();
 
 }
