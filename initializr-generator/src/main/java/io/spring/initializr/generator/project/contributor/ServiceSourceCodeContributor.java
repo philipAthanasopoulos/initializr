@@ -49,58 +49,91 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
             serviceTypeDeclaration.modifiers(PUBLIC);
             serviceTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Service"));
 
-            //create repository field
-            JavaFieldDeclaration repositoryFieldDeclaration = JavaFieldDeclaration
-                    .field(domainClassDescription.getClassName().toLowerCase() + "Repository")
-                    .modifiers(PRIVATE | FINAL)
-                    .returning(this.description.getPackageName() + ".repositories." + domainClassDescription.getClassName() + "Repository");
-            serviceTypeDeclaration.addFieldDeclaration(repositoryFieldDeclaration);
+            JavaFieldDeclaration repositoryFieldDeclaration = createRepositoryFieldDeclaration(domainClassDescription, serviceTypeDeclaration);
 
-            //create autowired constructor
-            JavaMethodDeclaration autowiredConstructorDeclaration = JavaMethodDeclaration
-                    .method("")
-                    .modifiers(PUBLIC)
-                    .returning(serviceTypeDeclaration.getName())
-                    .parameters(Parameter.of(repositoryFieldDeclaration.getName(), repositoryFieldDeclaration.getReturnType()))
-                    .body(CodeBlock.ofStatement("this." + repositoryFieldDeclaration.getName() + " = " + repositoryFieldDeclaration.getName()));
+            addAutowiredConstructor(serviceTypeDeclaration, repositoryFieldDeclaration);
 
-            serviceTypeDeclaration.addMethodDeclaration(autowiredConstructorDeclaration);
+            addSaveMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
 
-            //save entity method
-            String domainClassImport = this.description.getPackageName() + ".domain." + domainClassDescription.getClassName();
-            JavaMethodDeclaration saveEntityMethodDeclaration = JavaMethodDeclaration
-                    .method("save" + domainClassDescription.getClassName())
-                    .modifiers(PUBLIC)
-                    .returning(domainClassImport)
-                    .parameters(Parameter.of(
-                            domainClassDescription.getClassName().toLowerCase(),
-                            domainClassImport
-                    ))
-                    .body(CodeBlock.of("return this." + repositoryFieldDeclaration.getName() + ".save(" + domainClassDescription.getClassName().toLowerCase() + ");"));
+            addGetByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
 
-            serviceTypeDeclaration.addMethodDeclaration(saveEntityMethodDeclaration);
-
-
-            //get by id method
-            JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
-                    .method("get" + domainClassDescription.getClassName() + "ById")
-                    .modifiers(PUBLIC)
-                    .returning(domainClassImport)
-                    .parameters(
-                            Parameter.of(
-                                    "id",
-                                    "java.lang.Long"
-                            )
-                    )
-                    .body(CodeBlock.of(
-                            "return this." + repositoryFieldDeclaration.getName() + ".getById(id);"
-                    ));
-            serviceTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
+            addDeleteByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
         }
 
         this.sourceCodeWriter.writeTo(
                 this.description.getBuildSystem().getMainSource(projectRoot, this.description.getLanguage()),
                 sourceCode);
+    }
+
+    private JavaFieldDeclaration createRepositoryFieldDeclaration(DomainClassDescription domainClassDescription, JavaTypeDeclaration serviceTypeDeclaration) {
+        JavaFieldDeclaration repositoryFieldDeclaration = JavaFieldDeclaration
+                .field(domainClassDescription.getClassName().toLowerCase() + "Repository")
+                .modifiers(PRIVATE | FINAL)
+                .returning(this.description.getPackageName() + ".repositories." + domainClassDescription.getClassName() + "Repository");
+        serviceTypeDeclaration.addFieldDeclaration(repositoryFieldDeclaration);
+        return repositoryFieldDeclaration;
+    }
+
+    private void addAutowiredConstructor(JavaTypeDeclaration serviceTypeDeclaration, JavaFieldDeclaration repositoryFieldDeclaration) {
+        JavaMethodDeclaration autowiredConstructorDeclaration = JavaMethodDeclaration
+                .method("")
+                .modifiers(PUBLIC)
+                .returning(serviceTypeDeclaration.getName())
+                .parameters(Parameter.of(repositoryFieldDeclaration.getName(), repositoryFieldDeclaration.getReturnType()))
+                .body(CodeBlock.ofStatement("this." + repositoryFieldDeclaration.getName() + " = " + repositoryFieldDeclaration.getName()));
+        serviceTypeDeclaration.addMethodDeclaration(autowiredConstructorDeclaration);
+    }
+
+    private void addSaveMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
+        JavaMethodDeclaration saveEntityMethodDeclaration = JavaMethodDeclaration
+                .method("save" + domainClassDescription.getClassName())
+                .modifiers(PUBLIC)
+                .returning(getDomainClassImport(domainClassDescription))
+                .parameters(Parameter.of(
+                        domainClassDescription.getClassName().toLowerCase(),
+                        getDomainClassImport(domainClassDescription)
+                ))
+                .body(CodeBlock.of("return this." + repositoryFieldDeclaration.getName() + ".save(" + domainClassDescription.getClassName().toLowerCase() + ");"));
+
+        serviceTypeDeclaration.addMethodDeclaration(saveEntityMethodDeclaration);
+    }
+
+    private void addGetByIdMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
+        JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
+                .method("get" + domainClassDescription.getClassName() + "ById")
+                .modifiers(PUBLIC)
+                .returning(getDomainClassImport(domainClassDescription))
+                .parameters(
+                        Parameter.of(
+                                "id",
+                                "java.lang.Long"
+                        )
+                )
+                .body(CodeBlock.of(
+                        "return this." + repositoryFieldDeclaration.getName() + ".getById(id);"
+                ));
+        serviceTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
+    }
+
+    private void addDeleteByIdMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
+        JavaMethodDeclaration deleteEntityByIdMethod = JavaMethodDeclaration
+                .method("delete" + domainClassDescription.getClassName() + "ById")
+                .modifiers(PUBLIC)
+                .returning("void")
+                .parameters(
+                        Parameter.of(
+                                "id",
+                                "java.lang.Long"
+                        )
+                )
+                .body(CodeBlock.of(
+                        "this." + repositoryFieldDeclaration.getName() + ".deleteById(id);"
+                ));
+        serviceTypeDeclaration.addMethodDeclaration(deleteEntityByIdMethod);
+    }
+
+    private String getDomainClassImport(DomainClassDescription domainClassDescription) {
+        return this.description.getPackageName() + ".domain." + domainClassDescription.getClassName();
     }
 
     @Override
