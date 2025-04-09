@@ -5,6 +5,7 @@ import io.spring.initializr.generator.language.java.JavaCompilationUnit;
 import io.spring.initializr.generator.language.java.JavaFieldDeclaration;
 import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
 import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
+import io.spring.initializr.generator.project.AssociationDescription;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
@@ -20,14 +21,6 @@ import static java.lang.reflect.Modifier.PUBLIC;
 
 public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>>
         implements ProjectContributor {
-
-    public List<DomainClassDescription> getDomainClassDescriptions() {
-        return domainClassDescriptions;
-    }
-
-    public void setDomainClassDescriptions(List<DomainClassDescription> domainClassDescriptions) {
-        this.domainClassDescriptions = domainClassDescriptions;
-    }
 
     private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
     private final SourceCodeWriter<S> sourceCodeWriter;
@@ -48,6 +41,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
         System.out.println("Contributing domain classes");
         S sourceCode = this.sourceFactory.get();
 
+        //generate domain classes
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
             JavaCompilationUnit domainClassCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".domain", domainClassDescription.getClassName());
             JavaTypeDeclaration domainClassTypeDeclaration = domainClassCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName());
@@ -58,14 +52,88 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
             domainClassTypeDeclaration.annotations().add(ClassName.of("lombok.Data"));
 
             generateFields(domainClassDescription, domainClassTypeDeclaration);
-
             generateNoArgsConstructor(domainClassTypeDeclaration);
-
             generateGetters(domainClassDescription, domainClassTypeDeclaration);
-
             generateSetters(domainClassDescription, domainClassTypeDeclaration);
-
         }
+
+        System.out.println(this.description.getAssotiationDescriptions().size());
+        //add association fields
+        for (AssociationDescription assotiationDescription : this.description.getAssotiationDescriptions()) {
+            JavaCompilationUnit firstCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
+                    .filter(unit -> unit.getName().equals(assotiationDescription.getFirstClassName()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
+            JavaTypeDeclaration firstTypeDeclaration = firstCompilationUnit.getTypeDeclarations().get(0);
+
+            JavaCompilationUnit secondCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
+                    .filter(unit -> unit.getName().equals(assotiationDescription.getSecondClassName()))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
+            JavaTypeDeclaration secondTypeDeclaration = secondCompilationUnit.getTypeDeclarations().get(0);
+
+            switch (assotiationDescription.getAssotiationType()) {
+                case ONE_TO_ONE -> {
+                    JavaFieldDeclaration firstField = JavaFieldDeclaration
+                            .field(secondTypeDeclaration.getName().toLowerCase())
+                            .returning(secondTypeDeclaration.getName());
+                    firstField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                    firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                    JavaFieldDeclaration secondField = JavaFieldDeclaration
+                            .field(firstTypeDeclaration.getName().toLowerCase())
+                            .returning(firstTypeDeclaration.getName());
+                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                    secondTypeDeclaration.addFieldDeclaration(secondField);
+                }
+                case ONE_TO_MANY -> {
+                    JavaFieldDeclaration firstField = JavaFieldDeclaration
+                            .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                            .returnGenerics(secondTypeDeclaration.getName())
+                            .returning("java.util.List");
+
+                    firstField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
+                    firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                    JavaFieldDeclaration secondField = JavaFieldDeclaration
+                            .field(firstTypeDeclaration.getName().toLowerCase())
+                            .returning(firstTypeDeclaration.getName());
+                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                    secondTypeDeclaration.addFieldDeclaration(secondField);
+                }
+                case MANY_TO_ONE -> {
+                    JavaFieldDeclaration firstField = JavaFieldDeclaration
+                            .field(secondTypeDeclaration.getName().toLowerCase())
+                            .returning(secondTypeDeclaration.getName());
+
+                    firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToOne"));
+                    firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                    JavaFieldDeclaration secondField = JavaFieldDeclaration
+                            .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                            .returnGenerics(firstTypeDeclaration.getName())
+                            .returning("java.util.List");
+                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
+                    secondTypeDeclaration.addFieldDeclaration(secondField);
+                }
+                case MANY_TO_MANY -> {
+                    JavaFieldDeclaration firstField = JavaFieldDeclaration
+                            .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                            .returnGenerics(secondTypeDeclaration.getName())
+                            .returning("java.util.List");
+                    firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
+                    firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                    JavaFieldDeclaration secondField = JavaFieldDeclaration
+                            .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                            .returnGenerics(firstTypeDeclaration.getName())
+                            .returning("java.util.List");
+                    secondField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
+                    secondTypeDeclaration.addFieldDeclaration(secondField);
+                }
+            }
+        }
+
 
         this.sourceCodeWriter.writeTo(
                 this.description.getBuildSystem().getMainSource(projectRoot, this.description.getLanguage()),
@@ -121,6 +189,12 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                     .field(fieldDescription.getFieldName())
                     .modifiers(PRIVATE)
                     .returning(fieldDescription.getClassType());
+
+            if (fieldDescription.getFieldName().equals("id")) {
+                fieldDeclaration.annotations().add(ClassName.of("jakarta.persistence.Id"));
+                fieldDeclaration.annotations().add(ClassName.of("jakarta.persistence.GeneratedValue"));
+            }
+
             domainClassTypeDeclaration.addFieldDeclaration(fieldDeclaration);
         }
     }
@@ -132,5 +206,13 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
     @Override
     public int getOrder() {
         return ProjectContributor.super.getOrder();
+    }
+
+    public List<DomainClassDescription> getDomainClassDescriptions() {
+        return domainClassDescriptions;
+    }
+
+    public void setDomainClassDescriptions(List<DomainClassDescription> domainClassDescriptions) {
+        this.domainClassDescriptions = domainClassDescriptions;
     }
 }

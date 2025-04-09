@@ -19,8 +19,6 @@ package io.spring.initializr.generator.spring.code.java;
 import io.spring.initializr.generator.condition.ConditionalOnLanguage;
 import io.spring.initializr.generator.io.IndentingWriterFactory;
 import io.spring.initializr.generator.language.java.*;
-import io.spring.initializr.generator.project.DomainClassDescription;
-import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.ProjectGenerationConfiguration;
 import io.spring.initializr.generator.project.contributor.DomainClassSourceCodeContributor;
@@ -31,8 +29,6 @@ import io.spring.initializr.generator.spring.code.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-
-import java.util.List;
 
 /**
  * Configuration for contributions specific to the generation of a project that will use
@@ -56,44 +52,44 @@ public class JavaProjectGenerationConfiguration {
         return new JavaSourceCodeWriter(indentingWriterFactory);
     }
 
-    List<DomainClassDescription> descriptions =
-            List.of(
-                    new DomainClassDescription("User", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("name", "java.lang.String"),
-                            new FieldDescription("email", "java.lang.String")
-                    )),
-                    new DomainClassDescription("Product", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("name", "java.lang.String"),
-                            new FieldDescription("price", "java.math.BigDecimal")
-                    )),
-                    new DomainClassDescription("Order", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("orderDate", "java.time.LocalDate"),
-                            new FieldDescription("totalAmount", "java.math.BigDecimal")
-                    )),
-                    new DomainClassDescription("Customer", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("firstName", "java.lang.String"),
-                            new FieldDescription("lastName", "java.lang.String")
-                    )),
-                    new DomainClassDescription("Invoice", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("invoiceNumber", "java.lang.String"),
-                            new FieldDescription("amount", "java.math.BigDecimal")
-                    )),
-                    new DomainClassDescription("Payment", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("paymentDate", "java.time.LocalDate"),
-                            new FieldDescription("amount", "java.math.BigDecimal")
-                    )),
-                    new DomainClassDescription("Shipment", List.of(
-                            new FieldDescription("id", "java.lang.Long"),
-                            new FieldDescription("shipmentDate", "java.time.LocalDate"),
-                            new FieldDescription("trackingNumber", "java.lang.String")
-                    ))
-            );
+//    List<DomainClassDescription> descriptions =
+//            List.of(
+//                    new DomainClassDescription("User", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("name", "java.lang.String"),
+//                            new FieldDescription("email", "java.lang.String")
+//                    )),
+//                    new DomainClassDescription("Product", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("name", "java.lang.String"),
+//                            new FieldDescription("price", "java.math.BigDecimal")
+//                    )),
+//                    new DomainClassDescription("Order", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("orderDate", "java.time.LocalDate"),
+//                            new FieldDescription("totalAmount", "java.math.BigDecimal")
+//                    )),
+//                    new DomainClassDescription("Customer", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("firstName", "java.lang.String"),
+//                            new FieldDescription("lastName", "java.lang.String")
+//                    )),
+//                    new DomainClassDescription("Invoice", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("invoiceNumber", "java.lang.String"),
+//                            new FieldDescription("amount", "java.math.BigDecimal")
+//                    )),
+//                    new DomainClassDescription("Payment", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("paymentDate", "java.time.LocalDate"),
+//                            new FieldDescription("amount", "java.math.BigDecimal")
+//                    )),
+//                    new DomainClassDescription("Shipment", List.of(
+//                            new FieldDescription("id", "java.lang.Long"),
+//                            new FieldDescription("shipmentDate", "java.time.LocalDate"),
+//                            new FieldDescription("trackingNumber", "java.lang.String")
+//                    ))
+//            );
 
     @Bean
     MainSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mainJavaSourceCodeProjectContributor(

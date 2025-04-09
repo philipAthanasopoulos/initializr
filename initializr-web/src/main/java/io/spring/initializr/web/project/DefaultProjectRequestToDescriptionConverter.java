@@ -97,6 +97,7 @@ public class DefaultProjectRequestToDescriptionConverter
 		description.setPlatformVersion(platformVersion);
 		description.setVersion(request.getVersion());
 		description.setDomainClassDescriptions(request.getDomainClassDescriptions());
+		description.setAssociationDescriptions(request.getAssociationDescriptions());
 		resolvedDependencies.forEach((dependency) -> description.addDependency(dependency.getId(),
 				MetadataBuildItemMapper.toDependency(dependency)));
 	}

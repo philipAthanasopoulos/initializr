@@ -16,6 +16,7 @@
 
 package io.spring.initializr.web.project;
 
+import io.spring.initializr.generator.project.AssociationDescription;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import org.springframework.util.StringUtils;
 
@@ -59,6 +60,7 @@ public class ProjectRequest {
     private String baseDir;
 
     private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
+    private List<AssociationDescription> associationDescriptions = new ArrayList<>();
 
     public List<DomainClassDescription> getDomainClassDescriptions() {
         return domainClassDescriptions;
@@ -187,4 +189,11 @@ public class ProjectRequest {
         this.baseDir = baseDir;
     }
 
+    public List<AssociationDescription> getAssociationDescriptions() {
+        return associationDescriptions;
+    }
+
+    public void setAssociationDescriptions(List<AssociationDescription> associationDescriptions) {
+        this.associationDescriptions = associationDescriptions;
+    }
 }

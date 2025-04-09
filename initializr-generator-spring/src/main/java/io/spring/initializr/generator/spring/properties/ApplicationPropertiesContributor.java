@@ -54,6 +54,7 @@ public class ApplicationPropertiesContributor implements ProjectContributor {
         properties.add("spring.datasource.password", "root");
         properties.add("spring.datasource.driver-class-name", "org.postgresql.Driver");
         properties.add("spring.jpa.hibernate.ddl-auto", "create");
+        properties.add("server.port", "8081");
         try (PrintWriter writer = new PrintWriter(Files.newOutputStream(output, StandardOpenOption.APPEND), false,
                 StandardCharsets.UTF_8)) {
             this.properties.writeTo(writer);

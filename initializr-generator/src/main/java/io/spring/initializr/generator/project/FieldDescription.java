@@ -4,7 +4,8 @@ public class FieldDescription {
     private String fieldName;
     private String classType;
 
-    public FieldDescription(){}
+    public FieldDescription() {
+    }
 
     public FieldDescription(String fieldName, String classType) {
         this.fieldName = fieldName;

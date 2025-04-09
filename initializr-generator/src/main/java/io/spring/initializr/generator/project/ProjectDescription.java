@@ -122,4 +122,6 @@ public interface ProjectDescription {
 
 	List<DomainClassDescription> getDomainClassDescriptions();
 
+	List<AssociationDescription> getAssotiationDescriptions();
+
 }

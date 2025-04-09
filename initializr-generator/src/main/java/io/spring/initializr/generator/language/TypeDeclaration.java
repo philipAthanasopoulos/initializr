@@ -28,69 +28,75 @@ import java.util.List;
  */
 public class TypeDeclaration implements Annotatable {
 
-	private final AnnotationContainer annotations = new AnnotationContainer();
+    private final AnnotationContainer annotations = new AnnotationContainer();
 
-	private final String name;
+    private final String name;
 
-	private String extendedClassName;
+    private String extendedClassName;
 
-	private List<String> extendedClassNameGenerics = Collections.emptyList();
+    private List<String> extendedClassNameGenerics = Collections.emptyList();
 
-	private List<String> implementsClassNames = Collections.emptyList();
+    private List<String> implementsClassNames = Collections.emptyList();
 
-	/**
-	 * Creates a new instance.
-	 * @param name the type name
-	 */
-	public TypeDeclaration(String name) {
-		this.name = name;
-	}
+    /**
+     * Creates a new instance.
+     *
+     * @param name the type name
+     */
+    public TypeDeclaration(String name) {
+        this.name = name;
+    }
 
-	/**
-	 * Extend the class with the given name.
-	 * @param name the name of the class to extend
-	 */
-	public void extend(String name) {
-		this.extendedClassName = name;
-	}
+    /**
+     * Extend the class with the given name.
+     *
+     * @param name the name of the class to extend
+     */
+    public void extend(String name) {
+        this.extendedClassName = name;
+    }
 
-	/**
-	 * Implement the given interfaces.
-	 * @param names the names of the interfaces to implement
-	 */
-	public void implement(Collection<String> names) {
-		this.implementsClassNames = List.copyOf(names);
-	}
+    /**
+     * Implement the given interfaces.
+     *
+     * @param names the names of the interfaces to implement
+     */
+    public void implement(Collection<String> names) {
+        this.implementsClassNames = List.copyOf(names);
+    }
 
-	/**
-	 * Implement the given interfaces.
-	 * @param names the names of the interfaces to implement
-	 */
-	public void implement(String... names) {
-		this.implementsClassNames = List.of(names);
-	}
+    /**
+     * Implement the given interfaces.
+     *
+     * @param names the names of the interfaces to implement
+     */
+    public void implement(String... names) {
+        this.implementsClassNames = List.of(names);
+    }
 
-	public void extendedGenerics(String... names){
-		this.extendedClassNameGenerics = List.of(names);
-	}
+    public void extendedGenerics(String... names) {
+        this.extendedClassNameGenerics = List.of(names);
+    }
 
-	@Override
-	public AnnotationContainer annotations() {
-		return this.annotations;
-	}
+    @Override
+    public AnnotationContainer annotations() {
+        return this.annotations;
+    }
 
-	public String getName() {
-		return this.name;
-	}
+    public String getName() {
+        return this.name;
+    }
 
-	public String getExtends() {
-		return this.extendedClassName;
-	}
+    public String getExtends() {
+        return this.extendedClassName;
+    }
 
-	public List<String> getExtendedClassNameGenerics(){return this.extendedClassNameGenerics;}
+    public List<String> getExtendedClassNameGenerics() {
+        return this.extendedClassNameGenerics;
+    }
 
-	public List<String> getImplements() {
-		return this.implementsClassNames;
-	}
+    public List<String> getImplements() {
+        return this.implementsClassNames;
+    }
 
 }

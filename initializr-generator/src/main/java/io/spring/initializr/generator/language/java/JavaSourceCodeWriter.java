@@ -180,6 +180,15 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
         writeAnnotations(writer, fieldDeclaration);
         writeModifiers(writer, FIELD_MODIFIERS, fieldDeclaration.getModifiers());
         writer.print(getUnqualifiedName(fieldDeclaration.getReturnType()));
+        if(fieldDeclaration.getReturnTypeGenerics() != null){
+            Iterator<String> iterator = fieldDeclaration.getReturnTypeGenerics().iterator();
+            writer.print("<");
+            while (iterator.hasNext()) {
+                writer.print(getUnqualifiedName(iterator.next()));
+                if (iterator.hasNext()) writer.print(", ");
+            }
+            writer.print(">");
+        }
         writer.print(" ");
         writer.print(fieldDeclaration.getName());
         if (fieldDeclaration.isInitialized()) {
