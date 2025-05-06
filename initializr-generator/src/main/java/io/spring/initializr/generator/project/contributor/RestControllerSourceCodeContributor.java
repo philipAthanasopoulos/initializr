@@ -58,11 +58,8 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
             JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, restControllerTypeDeclaration);
 
             addAutowiredConstructor(restControllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
-
             addGetEntityByIdMethod(domainClassName, restControllerTypeDeclaration);
-
             addCreateEntityMethod(domainClassName, restControllerTypeDeclaration);
-
             addDeleteEntityMethod(domainClassName, restControllerTypeDeclaration);
         }
 

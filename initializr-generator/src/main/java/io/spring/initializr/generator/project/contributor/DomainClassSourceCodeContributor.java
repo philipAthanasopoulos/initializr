@@ -29,7 +29,6 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
 
     public DomainClassSourceCodeContributor(SourceCodeWriter<S> sourceCodeWriter, Supplier<S> sourceFactory, ProjectDescription description) {
-        System.out.println("Generated domain class contributor");
         this.sourceCodeWriter = sourceCodeWriter;
         this.sourceFactory = sourceFactory;
         this.description = description;
@@ -38,106 +37,121 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
     @Override
     public void contribute(Path projectRoot) throws IOException {
-        System.out.println("Contributing domain classes");
         S sourceCode = this.sourceFactory.get();
 
-        //generate domain classes
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
-            JavaCompilationUnit domainClassCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".domain", domainClassDescription.getClassName());
-            JavaTypeDeclaration domainClassTypeDeclaration = domainClassCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName());
-            domainClassTypeDeclaration.modifiers(PUBLIC);
-            domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Entity"));
-            domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Table"),
-                    (annotation) -> annotation.add("name", domainClassDescription.getClassName().toLowerCase() + "s"));
-            domainClassTypeDeclaration.annotations().add(ClassName.of("lombok.Data"));
-
-            generateFields(domainClassDescription, domainClassTypeDeclaration);
-            generateNoArgsConstructor(domainClassTypeDeclaration);
-            generateGetters(domainClassDescription, domainClassTypeDeclaration);
-            generateSetters(domainClassDescription, domainClassTypeDeclaration);
+            generateDomainClasses(domainClassDescription, sourceCode);
         }
 
-        System.out.println(this.description.getAssotiationDescriptions().size());
-        //add association fields
-        for (AssociationDescription assotiationDescription : this.description.getAssotiationDescriptions()) {
-            JavaCompilationUnit firstCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
-                    .filter(unit -> unit.getName().equals(assotiationDescription.getFirstClassName()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
-            JavaTypeDeclaration firstTypeDeclaration = firstCompilationUnit.getTypeDeclarations().get(0);
-
-            JavaCompilationUnit secondCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
-                    .filter(unit -> unit.getName().equals(assotiationDescription.getSecondClassName()))
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
-            JavaTypeDeclaration secondTypeDeclaration = secondCompilationUnit.getTypeDeclarations().get(0);
-
-            switch (assotiationDescription.getAssotiationType()) {
-                case ONE_TO_ONE -> {
-                    JavaFieldDeclaration firstField = JavaFieldDeclaration
-                            .field(secondTypeDeclaration.getName().toLowerCase())
-                            .returning(secondTypeDeclaration.getName());
-                    firstField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
-                    firstTypeDeclaration.addFieldDeclaration(firstField);
-
-                    JavaFieldDeclaration secondField = JavaFieldDeclaration
-                            .field(firstTypeDeclaration.getName().toLowerCase())
-                            .returning(firstTypeDeclaration.getName());
-                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
-                    secondTypeDeclaration.addFieldDeclaration(secondField);
-                }
-                case ONE_TO_MANY -> {
-                    JavaFieldDeclaration firstField = JavaFieldDeclaration
-                            .field(secondTypeDeclaration.getName().toLowerCase() + "s")
-                            .returnGenerics(secondTypeDeclaration.getName())
-                            .returning("java.util.List");
-
-                    firstField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
-                    firstTypeDeclaration.addFieldDeclaration(firstField);
-
-                    JavaFieldDeclaration secondField = JavaFieldDeclaration
-                            .field(firstTypeDeclaration.getName().toLowerCase())
-                            .returning(firstTypeDeclaration.getName());
-                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
-                    secondTypeDeclaration.addFieldDeclaration(secondField);
-                }
-                case MANY_TO_ONE -> {
-                    JavaFieldDeclaration firstField = JavaFieldDeclaration
-                            .field(secondTypeDeclaration.getName().toLowerCase())
-                            .returning(secondTypeDeclaration.getName());
-
-                    firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToOne"));
-                    firstTypeDeclaration.addFieldDeclaration(firstField);
-
-                    JavaFieldDeclaration secondField = JavaFieldDeclaration
-                            .field(firstTypeDeclaration.getName().toLowerCase() + "s")
-                            .returnGenerics(firstTypeDeclaration.getName())
-                            .returning("java.util.List");
-                    secondField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
-                    secondTypeDeclaration.addFieldDeclaration(secondField);
-                }
-                case MANY_TO_MANY -> {
-                    JavaFieldDeclaration firstField = JavaFieldDeclaration
-                            .field(secondTypeDeclaration.getName().toLowerCase() + "s")
-                            .returnGenerics(secondTypeDeclaration.getName())
-                            .returning("java.util.List");
-                    firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
-                    firstTypeDeclaration.addFieldDeclaration(firstField);
-
-                    JavaFieldDeclaration secondField = JavaFieldDeclaration
-                            .field(firstTypeDeclaration.getName().toLowerCase() + "s")
-                            .returnGenerics(firstTypeDeclaration.getName())
-                            .returning("java.util.List");
-                    secondField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
-                    secondTypeDeclaration.addFieldDeclaration(secondField);
-                }
-            }
+        for (AssociationDescription associationDescription : this.description.getAssotiationDescriptions()) {
+            generateAssotiationFields(associationDescription, sourceCode);
         }
-
 
         this.sourceCodeWriter.writeTo(
                 this.description.getBuildSystem().getMainSource(projectRoot, this.description.getLanguage()),
                 sourceCode);
+    }
+
+    private void generateAssotiationFields(AssociationDescription assotiationDescription, S sourceCode) {
+        JavaCompilationUnit firstCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
+                .filter(unit -> unit.getName().equals(assotiationDescription.getFirstClassName()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
+        JavaTypeDeclaration firstTypeDeclaration = firstCompilationUnit.getTypeDeclarations().get(0);
+
+        JavaCompilationUnit secondCompilationUnit = (JavaCompilationUnit) sourceCode.getCompilationUnits().stream()
+                .filter(unit -> unit.getName().equals(assotiationDescription.getSecondClassName()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Compilation unit not found"));
+        JavaTypeDeclaration secondTypeDeclaration = secondCompilationUnit.getTypeDeclarations().get(0);
+
+        JavaFieldDeclaration firstField;
+        JavaFieldDeclaration secondField;
+
+        switch (assotiationDescription.getAssotiationType()) {
+            case ONE_TO_ONE -> {
+                firstField = JavaFieldDeclaration
+                        .field(secondTypeDeclaration.getName().toLowerCase())
+                        .modifiers(PRIVATE)
+                        .returning(secondTypeDeclaration.getName());
+                firstField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                secondField = JavaFieldDeclaration
+                        .field(firstTypeDeclaration.getName().toLowerCase())
+                        .modifiers(PRIVATE)
+                        .returning(firstTypeDeclaration.getName());
+                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                secondTypeDeclaration.addFieldDeclaration(secondField);
+            }
+            case ONE_TO_MANY -> {
+                firstField = JavaFieldDeclaration
+                        .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                        .returnGenerics(secondTypeDeclaration.getName())
+                        .modifiers(PRIVATE)
+                        .returning("java.util.List");
+
+                firstField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
+                firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                secondField = JavaFieldDeclaration
+                        .field(firstTypeDeclaration.getName().toLowerCase())
+                        .modifiers(PRIVATE)
+                        .returning(firstTypeDeclaration.getName());
+                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
+                secondTypeDeclaration.addFieldDeclaration(secondField);
+            }
+            case MANY_TO_ONE -> {
+                firstField = JavaFieldDeclaration
+                        .field(secondTypeDeclaration.getName().toLowerCase())
+                        .modifiers(PRIVATE)
+                        .returning(secondTypeDeclaration.getName());
+
+                firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToOne"));
+                firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                secondField = JavaFieldDeclaration
+                        .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                        .returnGenerics(firstTypeDeclaration.getName())
+                        .modifiers(PRIVATE)
+                        .returning("java.util.List");
+                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"));
+                secondTypeDeclaration.addFieldDeclaration(secondField);
+            }
+            case MANY_TO_MANY -> {
+                firstField = JavaFieldDeclaration
+                        .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                        .returnGenerics(secondTypeDeclaration.getName())
+                        .modifiers(PRIVATE)
+                        .returning("java.util.List");
+                firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
+                firstTypeDeclaration.addFieldDeclaration(firstField);
+
+                secondField = JavaFieldDeclaration
+                        .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                        .returnGenerics(firstTypeDeclaration.getName())
+                        .modifiers(PRIVATE)
+                        .returning("java.util.List");
+                secondField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
+                secondTypeDeclaration.addFieldDeclaration(secondField);
+            }
+        }
+
+
+    }
+
+    private void generateDomainClasses(DomainClassDescription domainClassDescription, S sourceCode) {
+        JavaCompilationUnit domainClassCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".domain", domainClassDescription.getClassName());
+        JavaTypeDeclaration domainClassTypeDeclaration = domainClassCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName());
+        domainClassTypeDeclaration.modifiers(PUBLIC);
+        domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Entity"));
+        domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Table"),
+                (annotation) -> annotation.add("name", domainClassDescription.getClassName().toLowerCase() + "s"));
+        domainClassTypeDeclaration.annotations().add(ClassName.of("lombok.Data"));
+        generateFields(domainClassDescription, domainClassTypeDeclaration);
+        generateNoArgsConstructor(domainClassTypeDeclaration);
+        generateGetters(domainClassDescription, domainClassTypeDeclaration);
+        generateSetters(domainClassDescription, domainClassTypeDeclaration);
     }
 
     private void generateAllArgsConstructor(JavaTypeDeclaration domainClassTypeDeclaration) {

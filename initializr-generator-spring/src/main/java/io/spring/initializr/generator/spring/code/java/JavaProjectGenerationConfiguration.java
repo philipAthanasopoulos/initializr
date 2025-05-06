@@ -52,45 +52,6 @@ public class JavaProjectGenerationConfiguration {
         return new JavaSourceCodeWriter(indentingWriterFactory);
     }
 
-//    List<DomainClassDescription> descriptions =
-//            List.of(
-//                    new DomainClassDescription("User", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("name", "java.lang.String"),
-//                            new FieldDescription("email", "java.lang.String")
-//                    )),
-//                    new DomainClassDescription("Product", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("name", "java.lang.String"),
-//                            new FieldDescription("price", "java.math.BigDecimal")
-//                    )),
-//                    new DomainClassDescription("Order", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("orderDate", "java.time.LocalDate"),
-//                            new FieldDescription("totalAmount", "java.math.BigDecimal")
-//                    )),
-//                    new DomainClassDescription("Customer", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("firstName", "java.lang.String"),
-//                            new FieldDescription("lastName", "java.lang.String")
-//                    )),
-//                    new DomainClassDescription("Invoice", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("invoiceNumber", "java.lang.String"),
-//                            new FieldDescription("amount", "java.math.BigDecimal")
-//                    )),
-//                    new DomainClassDescription("Payment", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("paymentDate", "java.time.LocalDate"),
-//                            new FieldDescription("amount", "java.math.BigDecimal")
-//                    )),
-//                    new DomainClassDescription("Shipment", List.of(
-//                            new FieldDescription("id", "java.lang.Long"),
-//                            new FieldDescription("shipmentDate", "java.time.LocalDate"),
-//                            new FieldDescription("trackingNumber", "java.lang.String")
-//                    ))
-//            );
-
     @Bean
     MainSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mainJavaSourceCodeProjectContributor(
             ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
@@ -103,8 +64,6 @@ public class JavaProjectGenerationConfiguration {
 
     @Bean
     DomainClassSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> domainClassSourceCodeContributor(
-            ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
-            ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
             JavaSourceCodeWriter javaSourceCodeWriter) {
         DomainClassSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> domainClassSourceCodeContributor = new DomainClassSourceCodeContributor<>(
                 javaSourceCodeWriter,
@@ -117,44 +76,34 @@ public class JavaProjectGenerationConfiguration {
 
     @Bean
     RestControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor(
-            ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
-            ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
             JavaSourceCodeWriter javaSourceCodeWriter) {
         RestControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor = new RestControllerSourceCodeContributor<>(
                 javaSourceCodeWriter,
                 JavaSourceCode::new,
                 this.description
         );
-//        restControllerSourceCodeContributor.setDomainClassDescriptions(descriptions);
         return restControllerSourceCodeContributor;
     }
 
     @Bean
     ServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> serviceSourceCodeContributor(
-            ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
-            ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
             JavaSourceCodeWriter javaSourceCodeWriter) {
         ServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> serviceSourceCodeContributor = new ServiceSourceCodeContributor<>(
                 javaSourceCodeWriter,
                 JavaSourceCode::new,
                 this.description
         );
-//        serviceSourceCodeContributor.setDomainClassDescriptions(descriptions);
         return serviceSourceCodeContributor;
     }
 
-
     @Bean
     RepositorySourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> repositorySourceCodeContributor(
-            ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
-            ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
             JavaSourceCodeWriter javaSourceCodeWriter) {
         RepositorySourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor = new RepositorySourceCodeContributor<>(
                 javaSourceCodeWriter,
                 JavaSourceCode::new,
                 this.description
         );
-//        restControllerSourceCodeContributor.setDomainClassDescriptions(descriptions);
         return restControllerSourceCodeContributor;
     }
 
