@@ -43,11 +43,16 @@ public class RepositorySourceCodeContributor<T extends TypeDeclaration, C extend
         S sourceCode = this.sourceFactory.get();
 
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
-            JavaCompilationUnit repositoryCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".repositories", domainClassDescription.getClassName() + "Repository");
-            JavaTypeDeclaration repositoryTypeDeclaration = repositoryCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "Repository");
+            JavaCompilationUnit repositoryCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(
+                    this.description.getPackageName() + ".repositories",
+                    domainClassDescription.getClassName() + "Repository");
+            JavaTypeDeclaration repositoryTypeDeclaration = repositoryCompilationUnit.createTypeDeclaration(
+                    domainClassDescription.getClassName() + "Repository");
             repositoryTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Repository"));
             repositoryTypeDeclaration.extend("org.springframework.data.jpa.repository.JpaRepository");
-            repositoryTypeDeclaration.extendedGenerics(this.description.getPackageName() + ".domain." + domainClassDescription.getClassName(), "java.lang.Long");
+            repositoryTypeDeclaration.extendedGenerics(
+                    this.description.getPackageName() + ".domain." + domainClassDescription.getClassName(),
+                    "java.lang.Long");
             repositoryTypeDeclaration.modifiers(PUBLIC | INTERFACE);
         }
 

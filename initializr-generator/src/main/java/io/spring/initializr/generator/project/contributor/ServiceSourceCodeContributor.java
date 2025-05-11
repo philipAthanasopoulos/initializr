@@ -115,7 +115,10 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
         serviceTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
     }
 
-    private void addDeleteByIdMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
+    private void addDeleteByIdMethod(DomainClassDescription domainClassDescription,
+                                     JavaFieldDeclaration repositoryFieldDeclaration,
+                                     JavaTypeDeclaration serviceTypeDeclaration) {
+
         JavaMethodDeclaration deleteEntityByIdMethod = JavaMethodDeclaration
                 .method("delete" + domainClassDescription.getClassName() + "ById")
                 .modifiers(PUBLIC)
