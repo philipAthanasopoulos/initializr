@@ -53,13 +53,7 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Base {@link RestController} that provides endpoints for project generation.
@@ -67,6 +61,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @param <R> the {@link ProjectRequest} type to use to bind request parameters
  * @author Stephane Nicoll
  */
+@CrossOrigin
 @RestController
 public abstract class ProjectGenerationController<R extends ProjectRequest> {
 

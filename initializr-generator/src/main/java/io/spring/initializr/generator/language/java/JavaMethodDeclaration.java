@@ -16,14 +16,14 @@
 
 package io.spring.initializr.generator.language.java;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import io.spring.initializr.generator.language.Annotatable;
 import io.spring.initializr.generator.language.AnnotationContainer;
 import io.spring.initializr.generator.language.CodeBlock;
 import io.spring.initializr.generator.language.Parameter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Declaration of a method written in Java.
@@ -32,116 +32,135 @@ import io.spring.initializr.generator.language.Parameter;
  */
 public final class JavaMethodDeclaration implements Annotatable {
 
-	private final AnnotationContainer annotations = new AnnotationContainer();
+    private final AnnotationContainer annotations = new AnnotationContainer();
 
-	private final String name;
+    private final String name;
 
-	private final String returnType;
+    private final String returnType;
 
-	private final int modifiers;
+    private final List<String> returnTypeGenerics;
 
-	private final List<Parameter> parameters;
+    private final int modifiers;
 
-	private final CodeBlock code;
+    private final List<Parameter> parameters;
 
-	private JavaMethodDeclaration(Builder builder, CodeBlock code) {
-		this.name = builder.name;
-		this.returnType = builder.returnType;
-		this.modifiers = builder.modifiers;
-		this.parameters = List.copyOf(builder.parameters);
-		this.code = code;
-	}
+    private final CodeBlock code;
 
-	/**
-	 * Creates a new builder for the method with the given name.
-	 * @param name the name
-	 * @return the builder
-	 */
-	public static Builder method(String name) {
-		return new Builder(name);
-	}
+    private JavaMethodDeclaration(Builder builder, CodeBlock code) {
+        this.name = builder.name;
+        this.returnType = builder.returnType;
+        this.modifiers = builder.modifiers;
+        this.parameters = List.copyOf(builder.parameters);
+        this.returnTypeGenerics = builder.returnTypeGenerics;
+        this.code = code;
+    }
 
-	String getName() {
-		return this.name;
-	}
+    /**
+     * Creates a new builder for the method with the given name.
+     *
+     * @param name the name
+     * @return the builder
+     */
+    public static Builder method(String name) {
+        return new Builder(name);
+    }
 
-	String getReturnType() {
-		return this.returnType;
-	}
+    String getName() {
+        return this.name;
+    }
 
-	List<Parameter> getParameters() {
-		return this.parameters;
-	}
+    String getReturnType() {
+        return this.returnType;
+    }
 
-	int getModifiers() {
-		return this.modifiers;
-	}
+    List<Parameter> getParameters() {
+        return this.parameters;
+    }
 
-	CodeBlock getCode() {
-		return this.code;
-	}
+    int getModifiers() {
+        return this.modifiers;
+    }
 
-	@Override
-	public AnnotationContainer annotations() {
-		return this.annotations;
-	}
+    CodeBlock getCode() {
+        return this.code;
+    }
 
-	/**
-	 * Builder for creating a {@link JavaMethodDeclaration}.
-	 */
-	public static final class Builder {
+    public List<String> getReturnTypeGenerics() {
+        return returnTypeGenerics;
+    }
 
-		private final String name;
+    @Override
+    public AnnotationContainer annotations() {
+        return this.annotations;
+    }
 
-		private List<Parameter> parameters = new ArrayList<>();
+    /**
+     * Builder for creating a {@link JavaMethodDeclaration}.
+     */
+    public static final class Builder {
 
-		private String returnType = "void";
+        private final String name;
 
-		private int modifiers;
+        private List<Parameter> parameters = new ArrayList<>();
 
-		private Builder(String name) {
-			this.name = name;
-		}
+        private String returnType = "void";
 
-		/**
-		 * Sets the modifiers.
-		 * @param modifiers the modifiers
-		 * @return this for method chaining
-		 */
-		public Builder modifiers(int modifiers) {
-			this.modifiers = modifiers;
-			return this;
-		}
+        private List<String> returnTypeGenerics = new ArrayList<>();
 
-		/**
-		 * Sets the return type.
-		 * @param returnType the return type
-		 * @return this for method chaining
-		 */
-		public Builder returning(String returnType) {
-			this.returnType = returnType;
-			return this;
-		}
+        private int modifiers;
 
-		/**
-		 * Sets the parameters.
-		 * @param parameters the parameters
-		 * @return this for method chaining
-		 */
-		public Builder parameters(Parameter... parameters) {
-			this.parameters = Arrays.asList(parameters);
-			return this;
-		}
+        private Builder(String name) {
+            this.name = name;
+        }
 
-		/**
-		 * Sets the body.
-		 * @param code the code for the body
-		 * @return the method containing the body
-		 */
-		public JavaMethodDeclaration body(CodeBlock code) {
-			return new JavaMethodDeclaration(this, code);
-		}
+        /**
+         * Sets the modifiers.
+         *
+         * @param modifiers the modifiers
+         * @return this for method chaining
+         */
+        public Builder modifiers(int modifiers) {
+            this.modifiers = modifiers;
+            return this;
+        }
 
-	}
+        /**
+         * Sets the return type.
+         *
+         * @param returnType the return type
+         * @return this for method chaining
+         */
+        public Builder returning(String returnType) {
+            this.returnType = returnType;
+            return this;
+        }
+
+        public Builder returnGenerics(String... generics) {
+            this.returnTypeGenerics = List.of(generics);
+            return this;
+        }
+
+        /**
+         * Sets the parameters.
+         *
+         * @param parameters the parameters
+         * @return this for method chaining
+         */
+        public Builder parameters(Parameter... parameters) {
+            this.parameters = Arrays.asList(parameters);
+            return this;
+        }
+
+        /**
+         * Sets the body.
+         *
+         * @param code the code for the body
+         * @return the method containing the body
+         */
+        public JavaMethodDeclaration body(CodeBlock code) {
+            return new JavaMethodDeclaration(this, code);
+        }
+
+    }
 
 }

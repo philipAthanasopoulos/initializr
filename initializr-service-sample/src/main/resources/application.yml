@@ -15,6 +15,7 @@ management:
           - info
 
 server:
+  port: 8000
   compression:
     enabled: true
     mime-types: application/json,text/css,text/html
@@ -1899,6 +1900,7 @@ initializr:
     - name: 3.3.0
       id: 3.3.0
       default: true
+
 
 ---
 

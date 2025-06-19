@@ -40,10 +40,7 @@ import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * {@link RestController} that exposes metadata and service configuration.
@@ -51,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Stephane Nicoll
  * @author Moritz Halbritter
  */
+@CrossOrigin
 @RestController
 public class ProjectMetadataController extends AbstractMetadataController {
 

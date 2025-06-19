@@ -1,0 +1,134 @@
+package io.spring.initializr.generator.project.contributor;
+
+import io.spring.initializr.generator.language.*;
+import io.spring.initializr.generator.language.java.JavaCompilationUnit;
+import io.spring.initializr.generator.language.java.JavaFieldDeclaration;
+import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
+import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
+import io.spring.initializr.generator.project.DomainClassDescription;
+import io.spring.initializr.generator.project.ProjectDescription;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+import static java.lang.reflect.Modifier.*;
+
+public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>> implements ProjectContributor {
+
+    private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
+    private final SourceCodeWriter<S> sourceCodeWriter;
+    private final Supplier<S> sourceFactory;
+    private final ProjectDescription description;
+
+    public FrontendControllerSourceCodeContributor(SourceCodeWriter<S> sourceCodeWriter, Supplier<S> sourceFactory, ProjectDescription description) {
+        this.sourceCodeWriter = sourceCodeWriter;
+        this.sourceFactory = sourceFactory;
+        this.description = description;
+        this.domainClassDescriptions = description.getDomainClassDescriptions();
+    }
+
+    @Override
+    public void contribute(Path projectRoot) throws IOException {
+        S sourceCode = this.sourceFactory.get();
+
+        for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
+            generateControllerClasses(domainClassDescription, sourceCode);
+        }
+
+        this.sourceCodeWriter.writeTo(
+                this.description.getBuildSystem().getMainSource(projectRoot, this.description.getLanguage()),
+                sourceCode);
+    }
+
+    private void generateControllerClasses(DomainClassDescription domainClassDescription, S sourceCode) {
+        String domainClassName = domainClassDescription.getClassName();
+
+        JavaCompilationUnit controllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.web", domainClassDescription.getClassName() + "WebController");
+        JavaTypeDeclaration controllerTypeDeclaration = controllerCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "WebController");
+        controllerTypeDeclaration.modifiers(PUBLIC);
+        controllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Controller"));
+        controllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
+                (annotation) -> annotation.add("value", "/" + domainClassName.toLowerCase() + "s"));
+        String domainClassServiceName = domainClassName.toLowerCase() + "Service";
+
+        JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, controllerTypeDeclaration);
+
+        addAutowiredConstructor(controllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
+        addListMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
+        addAddMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
+    }
+
+    private void addAddMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+        CodeBlock code = CodeBlock.builder()
+                .addStatement("return $S/add", domainClassName.toLowerCase())
+                .build();
+
+        JavaMethodDeclaration listMethod = JavaMethodDeclaration
+                .method("add")
+                .modifiers(PUBLIC)
+                .parameters(
+                        Parameter.builder(domainClassName.toLowerCase())
+                                .type(this.description.getPackageName() + ".domain." + domainClassName)
+                                .annotate(ClassName.of("org.springframework.web.bind.annotation.ModelAttribute"),
+                                        (annotation) -> annotation.add("value", domainClassName.toLowerCase()))
+                                .build()
+                )
+                .returning("java.lang.String")
+                .body(code);
+
+        listMethod.annotations().add(ClassName.of("org.springframework.web.bind.annotation.GetMapping"),
+                (annotation) -> annotation.add("value", "/add"));
+        controllerTypeDeclaration.addMethodDeclaration(listMethod);
+    }
+
+    private void addListMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+        CodeBlock code = CodeBlock.builder()
+                .addStatement("model.addAttribute($Ss, $L.getAll$Ls())", domainClassName.toLowerCase(), serviceFieldDeclaration.getName(), domainClassName)
+                .addStatement("return $S/list", domainClassName.toLowerCase())
+                .build();
+
+        JavaMethodDeclaration listMethod = JavaMethodDeclaration
+                .method("list")
+                .modifiers(PUBLIC)
+                .parameters(
+                        Parameter.of("model", "org.springframework.ui.Model")
+                )
+                .returning("java.lang.String")
+                .body(code);
+
+        listMethod.annotations().add(ClassName.of("org.springframework.web.bind.annotation.GetMapping"));
+        controllerTypeDeclaration.addMethodDeclaration(listMethod);
+    }
+
+    private void addAutowiredConstructor(JavaTypeDeclaration restControllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassServiceName) {
+        CodeBlock code = CodeBlock.builder()
+                .addStatement("this.$L = $L", domainClassServiceName, serviceFieldDeclaration.getName())
+                .build();
+        JavaMethodDeclaration autowiredConstructorDeclaration = JavaMethodDeclaration
+                .method("")
+                .modifiers(PUBLIC)
+                .returning(restControllerTypeDeclaration.getName())
+                .parameters(Parameter.of(serviceFieldDeclaration.getName(), serviceFieldDeclaration.getReturnType()))
+                .body(code);
+
+        restControllerTypeDeclaration.addMethodDeclaration(autowiredConstructorDeclaration);
+    }
+
+    private JavaFieldDeclaration addEntityServiceField(String domainClassServiceName, String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        JavaFieldDeclaration serviceFieldDeclaration = JavaFieldDeclaration
+                .field(domainClassServiceName)
+                .modifiers(PRIVATE | FINAL)
+                .returning(this.description.getPackageName() + ".services." + domainClassName + "Service");
+        restControllerTypeDeclaration.addFieldDeclaration(serviceFieldDeclaration);
+        return serviceFieldDeclaration;
+    }
+
+
+    @Override
+    public int getOrder() {
+        return ProjectContributor.super.getOrder();
+    }
+}

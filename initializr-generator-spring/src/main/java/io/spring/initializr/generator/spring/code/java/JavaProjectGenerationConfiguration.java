@@ -21,10 +21,7 @@ import io.spring.initializr.generator.io.IndentingWriterFactory;
 import io.spring.initializr.generator.language.java.*;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.ProjectGenerationConfiguration;
-import io.spring.initializr.generator.project.contributor.DomainClassSourceCodeContributor;
-import io.spring.initializr.generator.project.contributor.RepositorySourceCodeContributor;
-import io.spring.initializr.generator.project.contributor.RestControllerSourceCodeContributor;
-import io.spring.initializr.generator.project.contributor.ServiceSourceCodeContributor;
+import io.spring.initializr.generator.project.contributor.*;
 import io.spring.initializr.generator.spring.code.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
@@ -72,6 +69,25 @@ public class JavaProjectGenerationConfiguration {
         );
         domainClassSourceCodeContributor.setDomainClassDescriptions(this.description.getDomainClassDescriptions());
         return domainClassSourceCodeContributor;
+    }
+
+    @Bean
+    FrontendControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> frontendControllerSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        FrontendControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> frontendControllerSourceCodeContributor = new FrontendControllerSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return frontendControllerSourceCodeContributor;
+    }
+
+    @Bean
+    ThymeleafTemplateContributor templateContributor() {
+        ThymeleafTemplateContributor thymeleafTemplateContributor = new ThymeleafTemplateContributor(
+                this.description
+        );
+        return thymeleafTemplateContributor;
     }
 
     @Bean

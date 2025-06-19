@@ -5,6 +5,7 @@ import io.spring.initializr.generator.language.java.JavaCompilationUnit;
 import io.spring.initializr.generator.language.java.JavaFieldDeclaration;
 import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
 import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
+import io.spring.initializr.generator.project.AssociationDescription;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 
@@ -22,11 +23,8 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         return domainClassDescriptions;
     }
 
-    public void setDomainClassDescriptions(List<DomainClassDescription> domainClassDescriptions) {
-        this.domainClassDescriptions = domainClassDescriptions;
-    }
-
     private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
+    private List<AssociationDescription> associationDescriptions = new ArrayList<>();
     private final SourceCodeWriter<S> sourceCodeWriter;
     private final Supplier<S> sourceFactory;
     private final ProjectDescription description;
@@ -37,6 +35,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         this.sourceFactory = sourceFactory;
         this.description = description;
         this.domainClassDescriptions = description.getDomainClassDescriptions();
+        this.associationDescriptions = description.getAssotiationDescriptions();
     }
 
     @Override
@@ -46,21 +45,32 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
             String domainClassName = domainClassDescription.getClassName();
 
-            JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers", domainClassName + "Controller");
+            JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.api", domainClassName + "Controller");
             JavaTypeDeclaration restControllerTypeDeclaration = restControllerCompilationUnit.createTypeDeclaration(domainClassName + "Controller");
             restControllerTypeDeclaration.modifiers(PUBLIC);
             restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RestController"));
             restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
-                    (annotation) -> annotation.add("value", "/" + domainClassName.toLowerCase() + "s"));
+                    (annotation) -> annotation.add("value", "/api/" + domainClassName.toLowerCase() + "s"));
 
             String domainClassServiceName = domainClassName.toLowerCase() + "Service";
 
             JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, restControllerTypeDeclaration);
 
             addAutowiredConstructor(restControllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
+            addFindAllMethod(domainClassName, restControllerTypeDeclaration);
             addGetEntityByIdMethod(domainClassName, restControllerTypeDeclaration);
             addCreateEntityMethod(domainClassName, restControllerTypeDeclaration);
+            addUpdateEntityMethod(domainClassName, restControllerTypeDeclaration);
             addDeleteEntityMethod(domainClassName, restControllerTypeDeclaration);
+
+            List<AssociationDescription> associationsDescirptionsOfGivenDomain = this.associationDescriptions.stream()
+                    .filter(association -> domainClassName.equals(association.getFirstClassName()) || domainClassName.equals(association.getSecondClassName()))
+                    .toList();
+
+            for (AssociationDescription associationDescription : associationsDescirptionsOfGivenDomain) {
+                //TODO
+            }
+
         }
 
         this.sourceCodeWriter.writeTo(
@@ -68,7 +78,23 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                 sourceCode);
     }
 
-
+    private void addFindAllMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        CodeBlock code = CodeBlock.ofStatement("return $LService.getAll$Ls()", domainClassName.toLowerCase(), domainClassName);
+        JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
+                .method("getAll" + domainClassName + "s")
+                .modifiers(PUBLIC)
+                .returning("java.util.List")
+                .returnGenerics(domainClassName)
+                .parameters(
+                        Parameter.builder("id")
+                                .type("java.lang.Long")
+                                .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
+                                .build()
+                )
+                .body(code);
+        getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.GetMapping"));
+        restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
+    }
 
     private JavaFieldDeclaration addEntityServiceField(String domainClassServiceName, String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
         JavaFieldDeclaration serviceFieldDeclaration = JavaFieldDeclaration
@@ -80,17 +106,19 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
     }
 
     private void addAutowiredConstructor(JavaTypeDeclaration restControllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassServiceName) {
+        CodeBlock code = CodeBlock.ofStatement("this.$L = $L", domainClassServiceName, serviceFieldDeclaration.getName());
         JavaMethodDeclaration autowiredConstructorDeclaration = JavaMethodDeclaration
                 .method("")
                 .modifiers(PUBLIC)
                 .returning(restControllerTypeDeclaration.getName())
                 .parameters(Parameter.of(serviceFieldDeclaration.getName(), serviceFieldDeclaration.getReturnType()))
-                .body(CodeBlock.ofStatement("this." + domainClassServiceName + " = " + serviceFieldDeclaration.getName()));
+                .body(code);
 
         restControllerTypeDeclaration.addMethodDeclaration(autowiredConstructorDeclaration);
     }
 
     private void addGetEntityByIdMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        CodeBlock code = CodeBlock.ofStatement("return $LService.get$LById(id)", domainClassName.toLowerCase(), domainClassName);
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("get" + domainClassName + "ById")
                 .modifiers(PUBLIC)
@@ -101,13 +129,14 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )
-                .body(CodeBlock.ofStatement("return " + domainClassName.toLowerCase() + "Service.get" + domainClassName + "ById(id)"));
+                .body(code);
         getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.GetMapping"),
                 (annotation) -> annotation.add("value", "/{id}"));
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
     }
 
     private void addCreateEntityMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        CodeBlock code = CodeBlock.ofStatement("return $LService.save$L($L)", domainClassName.toLowerCase(), domainClassName, domainClassName.toLowerCase());
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("create" + domainClassName)
                 .modifiers(PUBLIC)
@@ -118,12 +147,36 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.RequestBody"))
                                 .build()
                 )
-                .body(CodeBlock.ofStatement("return " + domainClassName.toLowerCase() + "Service.save" + domainClassName + "(" + domainClassName.toLowerCase() + ")"));
+                .body(code);
         getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.PostMapping"));
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
     }
 
+    private void addUpdateEntityMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        CodeBlock code = CodeBlock.ofStatement("return $LService.update$L($L, id)", domainClassName.toLowerCase(), domainClassName, domainClassName.toLowerCase());
+        JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
+                .method("update" + domainClassName)
+                .modifiers(PUBLIC)
+                .returning(this.description.getPackageName() + ".domain." + domainClassName)
+                .parameters(
+                        Parameter.builder(domainClassName.toLowerCase())
+                                .type(this.description.getPackageName() + ".domain." + domainClassName)
+                                .annotate(ClassName.of("org.springframework.web.bind.annotation.RequestBody"))
+                                .build(),
+
+                        Parameter.builder("id")
+                                .type("java.lang.Long")
+                                .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
+                                .build()
+                )
+                .body(code);
+        getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.PutMapping"),
+                (annotation) -> annotation.add("value", "/{id}"));
+        restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
+    }
+
     private void addDeleteEntityMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+        CodeBlock code = CodeBlock.ofStatement("$LService.delete$LById(id)", domainClassName.toLowerCase(), domainClassName);
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("delete" + domainClassName + "ById")
                 .modifiers(PUBLIC)
@@ -134,7 +187,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )
-                .body(CodeBlock.ofStatement(domainClassName.toLowerCase() + "Service.delete" + domainClassName  + "ById(id)"));
+                .body(code);
         getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.DeleteMapping"),
                 (annotation) -> annotation.add("value", "/{id}"));
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);

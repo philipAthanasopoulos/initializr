@@ -49,12 +49,11 @@ public class ApplicationPropertiesContributor implements ProjectContributor {
             Files.createDirectories(output.getParent());
             Files.createFile(output);
         }
-        properties.add("spring.datasource.url", "jdbc:postgresql://localhost:5432/myproject");
-        properties.add("spring.datasource.username", "postgres");
-        properties.add("spring.datasource.password", "root");
-        properties.add("spring.datasource.driver-class-name", "org.postgresql.Driver");
-        properties.add("spring.jpa.hibernate.ddl-auto", "create");
-        properties.add("server.port", "8081");
+        properties.add("spring.datasource.url", "${JDBC_DATABASE_URL}");
+        properties.add("spring.datasource.username", "${JDBC_DATABASE_USERNAME}");
+        properties.add("spring.datasource.password", "${JDBC_DATABASE_PASSWORD}");
+        properties.add("spring.jpa.hibernate.ddl-auto", "update");
+        properties.add("server.port", "8000");
         try (PrintWriter writer = new PrintWriter(Files.newOutputStream(output, StandardOpenOption.APPEND), false,
                 StandardCharsets.UTF_8)) {
             this.properties.writeTo(writer);

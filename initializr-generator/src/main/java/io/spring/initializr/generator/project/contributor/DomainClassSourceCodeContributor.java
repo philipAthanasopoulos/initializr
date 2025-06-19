@@ -69,6 +69,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
         JavaFieldDeclaration secondField;
 
         switch (associationDescription.getAssotiationType()) {
+            // For one to one associations, the second class will hold the foreign key
             case ONE_TO_ONE -> {
                 firstField = JavaFieldDeclaration
                         .field(secondTypeDeclaration.getName().toLowerCase())
@@ -82,7 +83,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(firstTypeDeclaration.getName().toLowerCase())
                         .modifiers(PRIVATE)
                         .returning(firstTypeDeclaration.getName());
-                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"), builder -> builder.set("mappedBy",firstTypeDeclaration.getName().toLowerCase()));
+                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"), builder -> builder.set("mappedBy",secondTypeDeclaration.getName().toLowerCase()));
                 secondTypeDeclaration.addFieldDeclaration(secondField);
             }
             case ONE_TO_MANY -> {
@@ -90,7 +91,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(secondTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.List");
+                        .returning("java.util.Set");
 
                 firstField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"), builder -> builder.set("mappedBy", firstTypeDeclaration.getName().toLowerCase()));
                 firstTypeDeclaration.addFieldDeclaration(firstField);
@@ -118,7 +119,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(firstTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.List");
+                        .returning("java.util.Set");
                 secondField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"), builder -> builder.set("mappedBy", secondTypeDeclaration.getName().toLowerCase()));
 
                 secondTypeDeclaration.addFieldDeclaration(secondField);
@@ -128,7 +129,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(secondTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.List");
+                        .returning("java.util.Set");
                 firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
                 firstTypeDeclaration.addFieldDeclaration(firstField);
 
@@ -136,7 +137,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(firstTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.List");
+                        .returning("java.util.Set");
                 secondField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
                 secondTypeDeclaration.addFieldDeclaration(secondField);
             }
@@ -157,15 +158,6 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
         generateSetters(domainClassDescription, domainClassTypeDeclaration);
     }
 
-    private void generateAllArgsConstructor(JavaTypeDeclaration domainClassTypeDeclaration) {
-        JavaMethodDeclaration allArgsConstructor = JavaMethodDeclaration
-                .method("")
-                .modifiers(PUBLIC)
-                .returning(domainClassTypeDeclaration.getName())
-                .body(CodeBlock.of("  "));
-        domainClassTypeDeclaration.addMethodDeclaration(allArgsConstructor);
-    }
-
     private void generateNoArgsConstructor(JavaTypeDeclaration domainClassTypeDeclaration) {
         JavaMethodDeclaration noArgsConstructor = JavaMethodDeclaration
                 .method("")
@@ -177,25 +169,25 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
     private void generateSetters(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {
         for (FieldDescription field : domainClassDescription.getFields()) {
+            CodeBlock code = CodeBlock.ofStatement("this.$L = $L",field.getFieldName(),field.getFieldName());
             JavaMethodDeclaration fieldSetter = JavaMethodDeclaration
                     .method("set" + capitalize(field.getFieldName()))
                     .modifiers(PUBLIC)
                     .returning("void")
                     .parameters(Parameter.of(field.getFieldName(), field.getClassType()))
-                    .body(CodeBlock.of("this." + field.getFieldName() + " = " + field.getFieldName() + ";"));
-
+                    .body(code);
             domainClassTypeDeclaration.addMethodDeclaration(fieldSetter);
         }
     }
 
     private void generateGetters(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {
         for (FieldDescription field : domainClassDescription.getFields()) {
+            CodeBlock code = CodeBlock.ofStatement("return this.$L",field.getFieldName());
             JavaMethodDeclaration fieldGetter = JavaMethodDeclaration
                     .method("get" + capitalize(field.getFieldName()))
                     .modifiers(PUBLIC)
                     .returning(field.getClassType())
-                    .body(CodeBlock.of("return this." + field.getFieldName() + ";"));
-
+                    .body(code);
             domainClassTypeDeclaration.addMethodDeclaration(fieldGetter);
         }
     }
