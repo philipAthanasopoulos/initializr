@@ -58,12 +58,37 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
 
         addAutowiredConstructor(controllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
         addListMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
-        addAddMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
+        addAddMethod(controllerTypeDeclaration, domainClassName);
+        addCreateMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
     }
 
-    private void addAddMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addCreateMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
         CodeBlock code = CodeBlock.builder()
-                .addStatement("return $S/add", domainClassName.toLowerCase())
+                .addStatement("$L.save$L($L)", serviceFieldDeclaration.getName(), domainClassName, domainClassName.toLowerCase())
+                .addStatement("return $S", "redirect:/" + domainClassName.toLowerCase() + "s")
+                .build();
+        JavaMethodDeclaration createMethod = JavaMethodDeclaration
+                .method("create")
+                .modifiers(PUBLIC)
+                .parameters(
+                        Parameter.builder(domainClassName.toLowerCase())
+                                .type(this.description.getPackageName() + ".domain." + domainClassName)
+                                .annotate(ClassName.of("org.springframework.web.bind.annotation.ModelAttribute"),
+                                        (annotation) -> annotation.add("value", domainClassName.toLowerCase()))
+                                .build()
+                )
+                .returning("java.lang.String")
+                .body(code);
+
+        createMethod.annotations().add(ClassName.of("org.springframework.web.bind.annotation.PostMapping"),
+                (annotation) -> annotation.add("value", "/add"));
+        controllerTypeDeclaration.addMethodDeclaration(createMethod);
+
+    }
+
+    private void addAddMethod(JavaTypeDeclaration controllerTypeDeclaration, String domainClassName) {
+        CodeBlock code = CodeBlock.builder()
+                .addStatement("return $S", domainClassName.toLowerCase() + "/add")
                 .build();
 
         JavaMethodDeclaration listMethod = JavaMethodDeclaration
@@ -86,8 +111,8 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
 
     private void addListMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
         CodeBlock code = CodeBlock.builder()
-                .addStatement("model.addAttribute($Ss, $L.getAll$Ls())", domainClassName.toLowerCase(), serviceFieldDeclaration.getName(), domainClassName)
-                .addStatement("return $S/list", domainClassName.toLowerCase())
+                .addStatement("model.addAttribute($S, $L.getAll$Ls())", domainClassName.toLowerCase() + "s", serviceFieldDeclaration.getName(), domainClassName)
+                .addStatement("return $S", domainClassName.toLowerCase() + "/list")
                 .build();
 
         JavaMethodDeclaration listMethod = JavaMethodDeclaration

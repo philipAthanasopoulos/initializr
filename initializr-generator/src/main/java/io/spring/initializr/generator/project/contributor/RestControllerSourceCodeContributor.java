@@ -85,12 +85,6 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                 .modifiers(PUBLIC)
                 .returning("java.util.List")
                 .returnGenerics(domainClassName)
-                .parameters(
-                        Parameter.builder("id")
-                                .type("java.lang.Long")
-                                .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
-                                .build()
-                )
                 .body(code);
         getEntityByIdMethodDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.GetMapping"));
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);

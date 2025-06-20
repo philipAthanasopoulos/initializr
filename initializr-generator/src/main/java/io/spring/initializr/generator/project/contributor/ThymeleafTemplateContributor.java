@@ -1,6 +1,7 @@
 package io.spring.initializr.generator.project.contributor;
 
 import io.spring.initializr.generator.project.DomainClassDescription;
+import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 
 import java.io.IOException;
@@ -31,8 +32,43 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
     private void generateAddTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
         Path file = generateTemplateFile(domainClassDescription, projectRoot, "/add.html");
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
-            writer.write("<!DOCTYPE html>");
+            writer.write(String.format(
+                    "<!DOCTYPE html>%n" +
+                    "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                    "<body>%n" +
+                    "\t<h1>Add %s</h1>%n" +
+                    "\t<form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                    "\t\t<table>%n" +
+                    getFieldInputs(domainClassDescription) +
+                    "\t\t</table>%n" +
+                    "\t\t<input type=\"submit\" value=\"Create\" />%n" +
+                    "\t</form>%n" +
+                    "</body>%n" +
+                    "</html>%n",
+                    domainClassDescription.getClassName(),
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase()
+            ));
         }
+    }
+
+    private String getFieldInputs(DomainClassDescription description) {
+        String res = "";
+        for (FieldDescription field : description.getFields()) {
+            if (field.getFieldName().equals("id")) {
+                continue;
+            }
+            res += String.format(
+                    "\t\t<tr>%n" +
+                    "\t\t\t\t<td>%s</td>%n" +
+                    "\t\t\t\t<td><input type=\"text\" th:field=\"*{%s}\" name=\"%s\" /></td>%n" +
+                    "\t\t</tr>%n",
+                    field.getFieldName(),
+                    field.getFieldName(),
+                    field.getFieldName()
+            );
+        }
+        return res;
     }
 
     private void generateViewTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
