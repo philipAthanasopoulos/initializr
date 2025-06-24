@@ -43,33 +43,36 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         S sourceCode = this.sourceFactory.get();
 
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
-            String domainClassName = domainClassDescription.getClassName();
+            if (domainClassDescription.isGenerateRestController()) {
+                String domainClassName = domainClassDescription.getClassName();
 
-            JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.api", domainClassName + "Controller");
-            JavaTypeDeclaration restControllerTypeDeclaration = restControllerCompilationUnit.createTypeDeclaration(domainClassName + "Controller");
-            restControllerTypeDeclaration.modifiers(PUBLIC);
-            restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RestController"));
-            restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
-                    (annotation) -> annotation.add("value", "/api/" + domainClassName.toLowerCase() + "s"));
+                JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.api", domainClassName + "Controller");
+                JavaTypeDeclaration restControllerTypeDeclaration = restControllerCompilationUnit.createTypeDeclaration(domainClassName + "Controller");
+                restControllerTypeDeclaration.modifiers(PUBLIC);
+                restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RestController"));
+                restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
+                        (annotation) -> annotation.add("value", "/api/" + domainClassName.toLowerCase() + "s"));
 
-            String domainClassServiceName = domainClassName.toLowerCase() + "Service";
+                String domainClassServiceName = domainClassName.toLowerCase() + "Service";
 
-            JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, restControllerTypeDeclaration);
+                JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, restControllerTypeDeclaration);
 
-            addAutowiredConstructor(restControllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
-            addFindAllMethod(domainClassName, restControllerTypeDeclaration);
-            addGetEntityByIdMethod(domainClassName, restControllerTypeDeclaration);
-            addCreateEntityMethod(domainClassName, restControllerTypeDeclaration);
-            addUpdateEntityMethod(domainClassName, restControllerTypeDeclaration);
-            addDeleteEntityMethod(domainClassName, restControllerTypeDeclaration);
+                addAutowiredConstructor(restControllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
+                addFindAllMethod(domainClassName, restControllerTypeDeclaration);
+                addGetEntityByIdMethod(domainClassName, restControllerTypeDeclaration);
+                addCreateEntityMethod(domainClassName, restControllerTypeDeclaration);
+                addUpdateEntityMethod(domainClassName, restControllerTypeDeclaration);
+                addDeleteEntityMethod(domainClassName, restControllerTypeDeclaration);
 
-            List<AssociationDescription> associationsDescirptionsOfGivenDomain = this.associationDescriptions.stream()
-                    .filter(association -> domainClassName.equals(association.getFirstClassName()) || domainClassName.equals(association.getSecondClassName()))
-                    .toList();
+                List<AssociationDescription> associationsDescirptionsOfGivenDomain = this.associationDescriptions.stream()
+                        .filter(association -> domainClassName.equals(association.getFirstClassName()) || domainClassName.equals(association.getSecondClassName()))
+                        .toList();
 
-            for (AssociationDescription associationDescription : associationsDescirptionsOfGivenDomain) {
-                //TODO
+                for (AssociationDescription associationDescription : associationsDescirptionsOfGivenDomain) {
+                    //TODO
+                }
             }
+
 
         }
 

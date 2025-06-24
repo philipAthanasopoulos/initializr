@@ -6,8 +6,12 @@ public class DomainClassDescription {
 
     private String className;
     private List<FieldDescription> fields;
+    private boolean generateRestController;
+    private boolean generateFrontendController;
 
-    public DomainClassDescription(){}
+
+    public DomainClassDescription() {
+    }
 
     public DomainClassDescription(String className, List<FieldDescription> fields) {
         this.className = className;
@@ -28,6 +32,21 @@ public class DomainClassDescription {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+    public boolean isGenerateRestController() {
+        return generateRestController;
+    }
+
+    public void setGenerateRestController(boolean generateRestController) {
+        this.generateRestController = generateRestController;
+    }
+
+    public boolean isGenerateFrontendController() {
+        return generateFrontendController;
+    }
+
+    public void setGenerateFrontendController(boolean generateFrontendController) {
+        this.generateFrontendController = generateFrontendController;
     }
 
 }

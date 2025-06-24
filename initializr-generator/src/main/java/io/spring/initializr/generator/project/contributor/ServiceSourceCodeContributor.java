@@ -45,19 +45,21 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
         S sourceCode = this.sourceFactory.get();
 
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
-            JavaCompilationUnit serviceCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".services", domainClassDescription.getClassName() + "Service");
-            JavaTypeDeclaration serviceTypeDeclaration = serviceCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "Service");
-            serviceTypeDeclaration.modifiers(PUBLIC);
-            serviceTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Service"));
+            if (domainClassDescription.isGenerateFrontendController() || domainClassDescription.isGenerateRestController()) {
+                JavaCompilationUnit serviceCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".services", domainClassDescription.getClassName() + "Service");
+                JavaTypeDeclaration serviceTypeDeclaration = serviceCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "Service");
+                serviceTypeDeclaration.modifiers(PUBLIC);
+                serviceTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Service"));
 
-            JavaFieldDeclaration repositoryFieldDeclaration = createRepositoryFieldDeclaration(domainClassDescription, serviceTypeDeclaration);
+                JavaFieldDeclaration repositoryFieldDeclaration = createRepositoryFieldDeclaration(domainClassDescription, serviceTypeDeclaration);
 
-            addAutowiredConstructor(serviceTypeDeclaration, repositoryFieldDeclaration);
-            addFindAllMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
-            addGetByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
-            addSaveMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
-            addPutMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
-            addDeleteByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+                addAutowiredConstructor(serviceTypeDeclaration, repositoryFieldDeclaration);
+                addFindAllMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+                addGetByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+                addSaveMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+                addPutMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+                addDeleteByIdMethod(domainClassDescription, repositoryFieldDeclaration, serviceTypeDeclaration);
+            }
         }
 
         this.sourceCodeWriter.writeTo(

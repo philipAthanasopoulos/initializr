@@ -22,10 +22,12 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
     @Override
     public void contribute(Path projectRoot) throws IOException {
         for (DomainClassDescription domainClassDescription : this.domainClassDescriptions) {
-            generateListTemplate(domainClassDescription, projectRoot);
-            generateEditTemplate(domainClassDescription, projectRoot);
-            generateViewTemplate(domainClassDescription, projectRoot);
-            generateAddTemplate(domainClassDescription, projectRoot);
+            if (domainClassDescription.isGenerateFrontendController()) {
+                generateListTemplate(domainClassDescription, projectRoot);
+                generateEditTemplate(domainClassDescription, projectRoot);
+                generateViewTemplate(domainClassDescription, projectRoot);
+                generateAddTemplate(domainClassDescription, projectRoot);
+            }
         }
     }
 
@@ -34,17 +36,17 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
             writer.write(String.format(
                     "<!DOCTYPE html>%n" +
-                    "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
-                    "<body>%n" +
-                    "\t<h1>Add %s</h1>%n" +
-                    "\t<form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
-                    "\t\t<table>%n" +
-                    getFieldInputs(domainClassDescription) +
-                    "\t\t</table>%n" +
-                    "\t\t<input type=\"submit\" value=\"Create\" />%n" +
-                    "\t</form>%n" +
-                    "</body>%n" +
-                    "</html>%n",
+                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                            "<body>%n" +
+                            "\t<h1>Add %s</h1>%n" +
+                            "\t<form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                            "\t\t<table>%n" +
+                            getFieldsInputs(domainClassDescription) +
+                            "\t\t</table>%n" +
+                            "\t\t<input type=\"submit\" value=\"Create\" />%n" +
+                            "\t</form>%n" +
+                            "</body>%n" +
+                            "</html>%n",
                     domainClassDescription.getClassName(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase()
@@ -52,7 +54,7 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         }
     }
 
-    private String getFieldInputs(DomainClassDescription description) {
+    private String getFieldsInputs(DomainClassDescription description) {
         String res = "";
         for (FieldDescription field : description.getFields()) {
             if (field.getFieldName().equals("id")) {
@@ -60,9 +62,9 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
             }
             res += String.format(
                     "\t\t<tr>%n" +
-                    "\t\t\t\t<td>%s</td>%n" +
-                    "\t\t\t\t<td><input type=\"text\" th:field=\"*{%s}\" name=\"%s\" /></td>%n" +
-                    "\t\t</tr>%n",
+                            "\t\t\t\t<td>%s</td>%n" +
+                            "\t\t\t\t<td><input type=\"text\" th:field=\"*{%s}\" name=\"%s\" /></td>%n" +
+                            "\t\t</tr>%n",
                     field.getFieldName(),
                     field.getFieldName(),
                     field.getFieldName()
@@ -74,21 +76,104 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
     private void generateViewTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
         Path file = generateTemplateFile(domainClassDescription, projectRoot, "/view.html");
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
-            writer.write("<!DOCTYPE html>");
+            writer.write(String.format(
+                    "<!DOCTYPE html>%n" +
+                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                            "<body>%n" +
+                            "\t<h1>View %s</h1>%n" +
+                            "\t<div th:object=\"${%s}\">%n" +
+                            "\t\t<table>%n" +
+                            getFieldsViews(domainClassDescription) +
+                            "\t\t</table>%n" +
+                            "<a th:href=\"@{/%ss/edit/{id}(id = ${%s.id})}\">Edit %s</a> | " +
+                            "<form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">" +
+                            "<button type=\"submit\">Delete %s</button>" +
+                            " </form>" +
+                            "\t</div>%n" +
+                            "</body>%n" +
+                            "</html>%n",
+                    domainClassDescription.getClassName(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase()
+            ));
         }
+    }
+
+    private String getFieldsViews(DomainClassDescription description) {
+        String res = "";
+        for (FieldDescription field : description.getFields()) {
+            res += String.format(
+                    "\t\t<tr>%n" +
+                            "\t\t\t\t<td><b>%s: </b></td>%n" +
+                            "\t\t\t\t<td th:text=\"${%s.%s}\"></td>%n" +
+                            "\t\t</tr>%n",
+                    field.getFieldName(),
+                    description.getClassName().toLowerCase(),
+                    field.getFieldName()
+            );
+        }
+        return res;
     }
 
     private void generateEditTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
         Path file = generateTemplateFile(domainClassDescription, projectRoot, "/edit.html");
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
-            writer.write("<!DOCTYPE html>");
+            writer.write(String.format(
+                    "<!DOCTYPE html>%n" +
+                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                            "<body>%n" +
+                            "\t<h1>Edit %s</h1>%n" +
+                            "\t<form th:action=\"@{/%s/edit/{id}(id = ${%s.id})}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                            "\t\t<table>%n" +
+                            getFieldsInputs(domainClassDescription) +
+                            "\t\t</table>%n" +
+                            "\t\t<input type=\"submit\" value=\"Submit Edit\" />%n" +
+                            "\t</form>%n" +
+                            "</body>%n" +
+                            "</html>%n",
+                    domainClassDescription.getClassName(),
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase()
+            ));
         }
     }
 
     private void generateListTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
         Path file = generateTemplateFile(domainClassDescription, projectRoot, "/list.html");
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
-            writer.write("<!DOCTYPE html>");
+            writer.write(String.format(
+                    "<!DOCTYPE html>%n" +
+                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                            "<body>%n" +
+                            "\t<h1>List of %s</h1>%n" +
+                            "\t<div th:object=\"${%s}\">%n" +
+                            "\t\t<table th:each=\"%s : ${%s}\">%n" +
+                            getFieldsViews(domainClassDescription) +
+                            "<a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>" +
+                            "<hr/>%n"+
+                            "\t\t</table>%n" +
+                            "\t</div>%n" +
+                            "<a th:href=\"@{/%s/add}\">Add %s</a>" +
+                            "</body>%n" +
+                            "</html>%n",
+                    domainClassDescription.getClassName() + "s",
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase(),
+                    domainClassDescription.getClassName().toLowerCase() + "s",
+                    domainClassDescription.getClassName().toLowerCase()
+            ));
         }
     }
 
