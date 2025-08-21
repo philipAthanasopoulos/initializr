@@ -1,10 +1,11 @@
-package io.spring.initializr.generator.project.contributor;
+package io.spring.initializr.generator.spring.code.java;
 
 import io.spring.initializr.generator.language.*;
 import io.spring.initializr.generator.language.java.JavaCompilationUnit;
 import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
+import io.spring.initializr.generator.project.contributor.ProjectContributor;
 
 import java.io.IOException;
 import java.nio.file.Path;

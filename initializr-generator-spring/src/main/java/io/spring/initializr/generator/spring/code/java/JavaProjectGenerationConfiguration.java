@@ -21,7 +21,6 @@ import io.spring.initializr.generator.io.IndentingWriterFactory;
 import io.spring.initializr.generator.language.java.*;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.ProjectGenerationConfiguration;
-import io.spring.initializr.generator.project.contributor.*;
 import io.spring.initializr.generator.spring.code.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;

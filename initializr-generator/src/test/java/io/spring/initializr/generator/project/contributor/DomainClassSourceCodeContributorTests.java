@@ -1,92 +1,88 @@
 package io.spring.initializr.generator.project.contributor;
 
-import io.spring.initializr.generator.buildsystem.BuildSystem;
-import io.spring.initializr.generator.language.Language;
-import io.spring.initializr.generator.language.SourceCodeWriter;
-import io.spring.initializr.generator.language.java.JavaCompilationUnit;
-import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
-import io.spring.initializr.generator.language.java.JavaSourceCode;
-import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
-import io.spring.initializr.generator.project.DomainClassDescription;
-import io.spring.initializr.generator.project.FieldDescription;
-import io.spring.initializr.generator.project.ProjectDescription;
-import org.junit.jupiter.api.BeforeAll;
+import io.spring.initializr.generator.buildsystem.maven.MavenBuildSystem;
+import io.spring.initializr.generator.language.java.JavaLanguage;
+import io.spring.initializr.generator.packaging.war.WarPackaging;
+import io.spring.initializr.generator.project.MutableProjectDescription;
+import io.spring.initializr.generator.spring.code.SourceCodeProjectGenerationConfiguration;
+import io.spring.initializr.generator.spring.code.java.JavaProjectGenerationConfiguration;
+import io.spring.initializr.generator.test.project.ProjectAssetTester;
+import io.spring.initializr.generator.test.project.ProjectStructure;
+import io.spring.initializr.generator.version.Version;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.function.Supplier;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 class DomainClassSourceCodeContributorTests {
-    static SourceCodeWriter<JavaSourceCode> writer;
-    static JavaSourceCode sourceCode;
-    static DomainClassSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> contributor;
 
-    @BeforeAll
-    static void setupDomainClassAndContributeClassWithFields() throws IOException {
-        writer = mock(SourceCodeWriter.class);
-        sourceCode = new JavaSourceCode();
-        Supplier<JavaSourceCode> sourceFactory = () -> sourceCode;
+    private ProjectAssetTester projectTester;
 
-        FieldDescription idField = new FieldDescription("id", "Long");
-        FieldDescription nameField = new FieldDescription("name", "String");
-        DomainClassDescription domainClass = new DomainClassDescription("User", List.of(idField, nameField), false, false, false);
-
-        ProjectDescription projectDescription = mock(ProjectDescription.class);
-        when(projectDescription.getDomainClassDescriptions()).thenReturn(List.of(domainClass));
-        when(projectDescription.getPackageName()).thenReturn("com.example");
-        when(projectDescription.getBuildSystem()).thenReturn(mock(BuildSystem.class));
-        when(projectDescription.getLanguage()).thenReturn(mock(Language.class));
-        when(projectDescription.getAssotiationDescriptions()).thenReturn(List.of());
-
-        contributor = new DomainClassSourceCodeContributor<>(writer, sourceFactory, projectDescription);
-        contributor.contribute(Path.of("test-root"));
+    @BeforeEach
+    void setup(@TempDir Path directory) {
+        this.projectTester = new ProjectAssetTester().withIndentingWriterFactory()
+                .withConfiguration(SourceCodeProjectGenerationConfiguration.class, JavaProjectGenerationConfiguration.class)
+                .withDirectory(directory)
+                .withDescriptionCustomizer((description) -> {
+                    description.setLanguage(new JavaLanguage());
+                    if (description.getPlatformVersion() == null) {
+                        description.setPlatformVersion(Version.parse("2.1.0.RELEASE"));
+                    }
+                    description.setBuildSystem(new MavenBuildSystem());
+                });
     }
 
     @Test
-    void contributeShouldGenerateDomainClass() throws Exception {
-        assertFalse(sourceCode.getCompilationUnits().isEmpty());
-        JavaCompilationUnit unit = sourceCode.getCompilationUnits().get(0);
-        assertEquals("User", unit.getName());
-        JavaTypeDeclaration type = unit.getTypeDeclarations().get(0);
-        assertEquals("User", type.getName());
-        assertTrue(type.getFieldDeclarations().stream().anyMatch(f -> f.getName().equals("id")));
-        assertTrue(type.getFieldDeclarations().stream().anyMatch(f -> f.getName().equals("name")));
-        verify(writer).writeTo(any(), eq(sourceCode));
+    void classFileIsContributed() {
+        MutableProjectDescription description = new MutableProjectDescription();
+        ProjectStructure project = this.projectTester.generate(description);
+        assertThat(project).containsFiles("src/main/java/com/example/domain/");
     }
 
     @Test
-    void contributeShouldGenerateConstructor() {
-        JavaCompilationUnit unit = sourceCode.getCompilationUnits().get(0);
-        JavaTypeDeclaration type = unit.getTypeDeclarations().get(0);
-        JavaMethodDeclaration constructor = type.getMethodDeclarations().get(0);
-        assertEquals("", constructor.getName());
+    void testClassIsContributedWithJUnit5() {
+        MutableProjectDescription description = new MutableProjectDescription();
+        description.setPlatformVersion(Version.parse("2.2.0.RELEASE"));
+        ProjectStructure project = this.projectTester.generate(description);
+        assertThat(project).textFile("src/test/java/com/example/demo/DemoApplicationTests.java")
+                .containsExactly("package com.example.demo;", "", "import org.junit.jupiter.api.Test;",
+                        "import org.springframework.boot.test.context.SpringBootTest;", "", "@SpringBootTest",
+                        "class DemoApplicationTests {", "", "    @Test", "    void contextLoads() {", "    }", "", "}");
     }
 
     @Test
-    void contributeShouldGenerateGettersAndSetters() {
-        JavaCompilationUnit unit = sourceCode.getCompilationUnits().get(0);
-        JavaTypeDeclaration type = unit.getTypeDeclarations().get(0);
-        type.getFieldDeclarations().forEach(field -> {
-            assertTrue(type.getMethodDeclarations().stream()
-                    .anyMatch(method -> method.getName().equals("get" + capitalize(field.getName()))));
-            assertTrue(type.getMethodDeclarations().stream()
-                    .anyMatch(method -> method.getName().equals("set" + capitalize(field.getName()))));
-        });
+    void servletInitializerIsContributedWhenGeneratingProjectThatUsesWarPackaging() {
+        MutableProjectDescription description = new MutableProjectDescription();
+        description.setPackaging(new WarPackaging());
+        description.setApplicationName("MyDemoApplication");
+        ProjectStructure project = this.projectTester.generate(description);
+        assertThat(project).textFile("src/main/java/com/example/demo/ServletInitializer.java")
+                .containsExactly("package com.example.demo;", "",
+                        "import org.springframework.boot.builder.SpringApplicationBuilder;",
+                        "import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;", "",
+                        "public class ServletInitializer extends SpringBootServletInitializer {", "", "    @Override",
+                        "    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {",
+                        "        return application.sources(MyDemoApplication.class);", "    }", "", "}");
     }
 
     @Test
-    void test() {
+    void customPackageNameIsUsedWhenGeneratingProject() {
+        MutableProjectDescription description = new MutableProjectDescription();
+        description.setPackageName("com.example.foo");
+        ProjectStructure project = this.projectTester.generate(description);
+        assertThat(project).containsFiles("src/main/java/com/example/foo/DemoApplication.java",
+                "src/test/java/com/example/foo/DemoApplicationTests.java");
     }
 
-    private String capitalize(String name) {
-        if (name == null || name.isEmpty()) {
-            return name;
-        }
-        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    @Test
+    void customApplicationNameIsUsedWhenGeneratingProject() {
+        MutableProjectDescription description = new MutableProjectDescription();
+        description.setApplicationName("MyApplication");
+        ProjectStructure project = this.projectTester.generate(description);
+        assertThat(project).containsFiles("src/main/java/com/example/demo/MyApplication.java",
+                "src/test/java/com/example/demo/MyApplicationTests.java");
     }
 }

@@ -1,8 +1,9 @@
-package io.spring.initializr.generator.project.contributor;
+package io.spring.initializr.generator.spring.code.java;
 
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
+import io.spring.initializr.generator.project.contributor.ProjectContributor;
 
 import java.io.IOException;
 import java.io.PrintWriter;
