@@ -65,7 +65,7 @@ public final class JavaMethodDeclaration implements Annotatable {
         return new Builder(name);
     }
 
-    String getName() {
+    public String getName() {
         return this.name;
     }
 

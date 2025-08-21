@@ -131,18 +131,19 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                             "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
                             "<body>%n" +
                             "\t<h1>Edit %s</h1>%n" +
-                            "\t<form th:action=\"@{/%s/edit/{id}(id = ${%s.id})}\" th:object=\"${%s}\" method=\"POST\">%n" +
-                            "\t\t<table>%n" +
-                            getFieldsInputs(domainClassDescription) +
-                            "\t\t</table>%n" +
-                            "\t\t<input type=\"submit\" value=\"Submit Edit\" />%n" +
-                            "\t</form>%n" +
+                            "\t\t<form th:action=\"@{/%s/edit/{id}(id=${%s.id})}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                            "\t\t\t<table>%n" +
+                            "%s" +
+                            "\t\t\t</table>%n" +
+                            "\t\t\t<input type=\"submit\" value=\"Submit Edit\" />%n" +
+                            "\t\t</form>%n" +
                             "</body>%n" +
                             "</html>%n",
                     domainClassDescription.getClassName(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase(),
-                    domainClassDescription.getClassName().toLowerCase()
+                    domainClassDescription.getClassName().toLowerCase(),
+                    getFieldsInputs(domainClassDescription)
             ));
         }
     }
@@ -155,24 +156,27 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                             "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
                             "<body>%n" +
                             "\t<h1>List of %s</h1>%n" +
-                            "\t<div th:object=\"${%s}\">%n" +
-                            "\t\t<table th:each=\"%s : ${%s}\">%n" +
+                            "\t\t<div>%n" +
+                            "\t\t\t<table>%n" +
+                            "\t\t\t\t<tr th:each=\"%s : ${%s}\">%n" +
                             getFieldsViews(domainClassDescription) +
-                            "<a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>" +
-                            "<hr/>%n"+
-                            "\t\t</table>%n" +
-                            "\t</div>%n" +
-                            "<a th:href=\"@{/%s/add}\">Add %s</a>" +
+                            "\t\t\t\t<tr>%n" +
+                            "\t\t\t\t\t<td>%n" +
+                            "\t\t\t\t\t\t<a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>%n" +
+                            "\t\t\t\t\t</td>%n" +
+                            "\t\t\t\t</tr>%n" +
+                            "\t\t\t</table>%n" +
+                            "\t\t</div>%n" +
+                            "\t<a th:href=\"@{/%s/add}\">Add %s</a>%n" +
                             "</body>%n" +
                             "</html>%n",
                     domainClassDescription.getClassName() + "s",
-                    domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
-                    domainClassDescription.getClassName().toLowerCase()
+                    domainClassDescription.getClassName()
             ));
         }
     }

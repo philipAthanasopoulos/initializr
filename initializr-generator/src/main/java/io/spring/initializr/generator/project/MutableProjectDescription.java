@@ -59,6 +59,7 @@ public class MutableProjectDescription implements ProjectDescription {
     private String baseDirectory;
 
     private List<DomainClassDescription> domainClassDescriptions = new ArrayList<>();
+
     private List<AssociationDescription> associationDescriptions = new ArrayList<>();
 
 

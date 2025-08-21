@@ -49,7 +49,8 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
         this.sourceCodeWriter.writeTo(
                 this.description.getBuildSystem().getMainSource(projectRoot, this.description.getLanguage()),
-                sourceCode);
+                sourceCode
+        );
     }
 
     private void generateAssociationFields(AssociationDescription associationDescription, S sourceCode) {
@@ -76,14 +77,14 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .modifiers(PRIVATE)
                         .returning(secondTypeDeclaration.getName());
                 firstField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"));
-                firstField.annotations().add(ClassName.of("jakarta.persistence.JoinColumn"), builder -> builder.set("name",secondTypeDeclaration.getName().toLowerCase() + "_id"));
+                firstField.annotations().add(ClassName.of("jakarta.persistence.JoinColumn"), builder -> builder.set("name", secondTypeDeclaration.getName().toLowerCase() + "_id"));
                 firstTypeDeclaration.addFieldDeclaration(firstField);
 
                 secondField = JavaFieldDeclaration
                         .field(firstTypeDeclaration.getName().toLowerCase())
                         .modifiers(PRIVATE)
                         .returning(firstTypeDeclaration.getName());
-                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"), builder -> builder.set("mappedBy",secondTypeDeclaration.getName().toLowerCase()));
+                secondField.annotations().add(ClassName.of("jakarta.persistence.OneToOne"), builder -> builder.set("mappedBy", secondTypeDeclaration.getName().toLowerCase()));
                 secondTypeDeclaration.addFieldDeclaration(secondField);
             }
             case ONE_TO_MANY -> {
@@ -151,11 +152,16 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
         domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Entity"));
         domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Table"),
                 (annotation) -> annotation.add("name", domainClassDescription.getClassName().toLowerCase() + "s"));
-        domainClassTypeDeclaration.annotations().add(ClassName.of("lombok.Data"));
+
         generateFields(domainClassDescription, domainClassTypeDeclaration);
-        generateNoArgsConstructor(domainClassTypeDeclaration);
-        generateGetters(domainClassDescription, domainClassTypeDeclaration);
-        generateSetters(domainClassDescription, domainClassTypeDeclaration);
+
+        if (domainClassDescription.isUseLombok()) {
+            domainClassTypeDeclaration.annotations().add(ClassName.of("lombok.Data"));
+        } else {
+            generateNoArgsConstructor(domainClassTypeDeclaration);
+            generateGetters(domainClassDescription, domainClassTypeDeclaration);
+            generateSetters(domainClassDescription, domainClassTypeDeclaration);
+        }
     }
 
     private void generateNoArgsConstructor(JavaTypeDeclaration domainClassTypeDeclaration) {
@@ -169,7 +175,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
     private void generateSetters(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {
         for (FieldDescription field : domainClassDescription.getFields()) {
-            CodeBlock code = CodeBlock.ofStatement("this.$L = $L",field.getFieldName(),field.getFieldName());
+            CodeBlock code = CodeBlock.ofStatement("this.$L = $L", field.getFieldName(), field.getFieldName());
             JavaMethodDeclaration fieldSetter = JavaMethodDeclaration
                     .method("set" + capitalize(field.getFieldName()))
                     .modifiers(PUBLIC)
@@ -182,7 +188,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
 
     private void generateGetters(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {
         for (FieldDescription field : domainClassDescription.getFields()) {
-            CodeBlock code = CodeBlock.ofStatement("return this.$L",field.getFieldName());
+            CodeBlock code = CodeBlock.ofStatement("return this.$L", field.getFieldName());
             JavaMethodDeclaration fieldGetter = JavaMethodDeclaration
                     .method("get" + capitalize(field.getFieldName()))
                     .modifiers(PUBLIC)
