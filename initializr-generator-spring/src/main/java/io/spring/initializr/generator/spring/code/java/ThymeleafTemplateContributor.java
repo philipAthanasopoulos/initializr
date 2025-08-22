@@ -38,15 +38,15 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
             writer.write(String.format(
                     "<!DOCTYPE html>%n" +
                             "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
-                            "<body>%n" +
-                            "\t<h1>Add %s</h1>%n" +
-                            "\t<form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
-                            "\t\t<table>%n" +
-                            getFieldsInputs(domainClassDescription) +
-                            "\t\t</table>%n" +
-                            "\t\t<input type=\"submit\" value=\"Create\" />%n" +
-                            "\t</form>%n" +
-                            "</body>%n" +
+                            "  <body>%n" +
+                            "    <h1>Add %s</h1>%n" +
+                            "    <form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                            "      <table>%n" +
+                            getFieldsInputs(domainClassDescription, 4) +
+                            "      </table>%n" +
+                            "      <input type=\"submit\" value=\"Create\" />%n" +
+                            "    </form>%n" +
+                            "  </body>%n" +
                             "</html>%n",
                     domainClassDescription.getClassName(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
@@ -55,17 +55,20 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         }
     }
 
-    private String getFieldsInputs(DomainClassDescription description) {
+    private String getFieldsInputs(DomainClassDescription description, int nestingLevel) {
         String res = "";
+        String nestingSpace = "  ".repeat(nestingLevel);
         for (FieldDescription field : description.getFields()) {
             if (field.getFieldName().equals("id")) {
                 continue;
             }
             res += String.format(
-                    "\t\t<tr>%n" +
-                            "\t\t\t\t<td>%s</td>%n" +
-                            "\t\t\t\t<td><input type=\"text\" th:field=\"*{%s}\" name=\"%s\" /></td>%n" +
-                            "\t\t</tr>%n",
+                    nestingSpace + "<tr>%n" +
+                            nestingSpace + "  <td>%s</td>%n" +
+                            nestingSpace + "  <td>%n" +
+                            nestingSpace + "    <input type=\"text\" th:field=\"*{%s}\" name=\"%s\" />%n" +
+                            nestingSpace + "  </td>%n" +
+                            nestingSpace + "</tr>%n",
                     field.getFieldName(),
                     field.getFieldName(),
                     field.getFieldName()
@@ -80,18 +83,18 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
             writer.write(String.format(
                     "<!DOCTYPE html>%n" +
                             "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
-                            "<body>%n" +
-                            "\t<h1>View %s</h1>%n" +
-                            "\t<div th:object=\"${%s}\">%n" +
-                            "\t\t<table>%n" +
-                            getFieldsViews(domainClassDescription) +
-                            "\t\t</table>%n" +
-                            "<a th:href=\"@{/%ss/edit/{id}(id = ${%s.id})}\">Edit %s</a> | " +
-                            "<form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">" +
-                            "<button type=\"submit\">Delete %s</button>" +
-                            " </form>" +
-                            "\t</div>%n" +
-                            "</body>%n" +
+                            "  <body>%n" +
+                            "    <h1>View %s</h1>%n" +
+                            "    <div th:object=\"${%s}\">%n" +
+                            "      <table>%n" +
+                                     getFieldsViews(domainClassDescription,4) +
+                            "      </table>%n" +
+                            "      <a th:href=\"@{/%ss/edit/{id}(id = ${%s.id})}\">Edit %s</a> | " +
+                            "      <form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">" +
+                            "        <button type=\"submit\">Delete %s</button>" +
+                            "      </form>" +
+                            "    </div>%n" +
+                            "  </body>%n" +
                             "</html>%n",
                     domainClassDescription.getClassName(),
                     domainClassDescription.getClassName().toLowerCase(),
@@ -108,14 +111,15 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         }
     }
 
-    private String getFieldsViews(DomainClassDescription description) {
+    private String getFieldsViews(DomainClassDescription description, int nestingLevel) {
         String res = "";
+        String nestingSpace = "  ".repeat(nestingLevel);
         for (FieldDescription field : description.getFields()) {
             res += String.format(
-                    "\t\t<tr>%n" +
-                            "\t\t\t\t<td><b>%s: </b></td>%n" +
-                            "\t\t\t\t<td th:text=\"${%s.%s}\"></td>%n" +
-                            "\t\t</tr>%n",
+                    nestingSpace + "<tr>%n" +
+                    nestingSpace + "  <td><b>%s: </b></td>%n" +
+                    nestingSpace + "  <td th:text=\"${%s.%s}\"></td>%n" +
+                    nestingSpace + "</tr>%n",
                     field.getFieldName(),
                     description.getClassName().toLowerCase(),
                     field.getFieldName()
@@ -129,22 +133,22 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
             writer.write(String.format(
                     "<!DOCTYPE html>%n" +
-                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
-                            "<body>%n" +
-                            "\t<h1>Edit %s</h1>%n" +
-                            "\t\t<form th:action=\"@{/%s/edit/{id}(id=${%s.id})}\" th:object=\"${%s}\" method=\"POST\">%n" +
-                            "\t\t\t<table>%n" +
-                            "%s" +
-                            "\t\t\t</table>%n" +
-                            "\t\t\t<input type=\"submit\" value=\"Submit Edit\" />%n" +
-                            "\t\t</form>%n" +
-                            "</body>%n" +
-                            "</html>%n",
+                    "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                    "  <body>%n" +
+                    "    <h1>Edit %s</h1>%n" +
+                    "    <form th:action=\"@{/%s/edit/{id}(id=${%s.id})}\" th:object=\"${%s}\" method=\"POST\">%n" +
+                    "      <table>%n" +
+                    "%s" +
+                    "      </table>%n" +
+                    "      <input type=\"submit\" value=\"Submit Edit\" />%n" +
+                    "    </form>%n" +
+                    "  </body>%n" +
+                    "</html>%n",
                     domainClassDescription.getClassName(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
                     domainClassDescription.getClassName().toLowerCase(),
                     domainClassDescription.getClassName().toLowerCase(),
-                    getFieldsInputs(domainClassDescription)
+                    getFieldsInputs(domainClassDescription, 4)
             ));
         }
     }
@@ -154,23 +158,24 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file))) {
             writer.write(String.format(
                     "<!DOCTYPE html>%n" +
-                            "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
-                            "<body>%n" +
-                            "\t<h1>List of %s</h1>%n" +
-                            "\t\t<div>%n" +
-                            "\t\t\t<table>%n" +
-                            "\t\t\t\t<tr th:each=\"%s : ${%s}\">%n" +
-                            getFieldsViews(domainClassDescription) +
-                            "\t\t\t\t<tr>%n" +
-                            "\t\t\t\t\t<td>%n" +
-                            "\t\t\t\t\t\t<a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>%n" +
-                            "\t\t\t\t\t</td>%n" +
-                            "\t\t\t\t</tr>%n" +
-                            "\t\t\t</table>%n" +
-                            "\t\t</div>%n" +
-                            "\t<a th:href=\"@{/%s/add}\">Add %s</a>%n" +
-                            "</body>%n" +
-                            "</html>%n",
+                    "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
+                    "  <body>%n" +
+                    "    <h1>List of %s</h1>%n" +
+                    "    <div>%n" +
+                    "      <table>%n" +
+                    "        <tr th:each=\"%s : ${%s}\">%n" +
+                               getFieldsViews(domainClassDescription,4) +
+                    "        </tr>%n" +
+                    "        <tr>%n"+
+                    "          <td>%n" +
+                    "            <a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>%n" +
+                    "          </td>%n" +
+                    "        </tr>%n" +
+                    "      </table>%n" +
+                    "    </div>%n" +
+                    "    <a th:href=\"@{/%s/add}\">Add %s</a>%n" +
+                    "  </body>%n" +
+                    "</html>%n",
                     domainClassDescription.getClassName() + "s",
                     domainClassDescription.getClassName().toLowerCase(),
                     domainClassDescription.getClassName().toLowerCase() + "s",
