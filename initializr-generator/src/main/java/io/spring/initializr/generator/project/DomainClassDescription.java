@@ -10,7 +10,8 @@ public class DomainClassDescription {
     private boolean generateFrontendController;
     private boolean useLombok;
 
-    public DomainClassDescription(){}
+    public DomainClassDescription() {
+    }
 
 
     public DomainClassDescription(String className, List<FieldDescription> fields, boolean generateRestController, boolean generateFrontendController, boolean useLombok) {

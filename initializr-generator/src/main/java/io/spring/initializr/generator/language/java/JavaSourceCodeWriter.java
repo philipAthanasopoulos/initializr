@@ -131,7 +131,7 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
                     writeImplements(type, writer);
                 }
                 writer.println(" {");
-                writer.println();
+//                writer.println();
                 List<JavaFieldDeclaration> fieldDeclarations = type.getFieldDeclarations();
                 if (!fieldDeclarations.isEmpty()) {
                     writer.indented(() -> {
@@ -177,6 +177,7 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
     }
 
     private void writeFieldDeclaration(IndentingWriter writer, JavaFieldDeclaration fieldDeclaration) {
+        writer.println();
         writeAnnotations(writer, fieldDeclaration);
         writeModifiers(writer, FIELD_MODIFIERS, fieldDeclaration.getModifiers());
         writer.print(getUnqualifiedName(fieldDeclaration.getReturnType()));
@@ -187,7 +188,6 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
             writer.print(String.valueOf(fieldDeclaration.getValue()));
         }
         writer.println(";");
-        writer.println();
     }
 
     private void writeFieldGenerics(IndentingWriter writer, JavaFieldDeclaration fieldDeclaration) {
@@ -204,21 +204,22 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
     }
 
     private void writeMethodDeclaration(IndentingWriter writer, JavaMethodDeclaration methodDeclaration) {
+        writer.println();
         writeAnnotations(writer, methodDeclaration);
         writeModifiers(writer, METHOD_MODIFIERS, methodDeclaration.getModifiers());
         writer.print(getUnqualifiedName(methodDeclaration.getReturnType()));
         writeMethodGenerics(writer, methodDeclaration);
-        writer.print(" " + methodDeclaration.getName() + "(");
-        writer.print(" ");
+        //check for constructor
+        if (!methodDeclaration.getName().isEmpty()) writer.print(" " + methodDeclaration.getName());
+        writer.print("(");
         writeParameters(writer, methodDeclaration.getParameters());
         writer.println(") {");
         writer.indented(() -> methodDeclaration.getCode().write(writer, CodeBlock.JAVA_FORMATTING_OPTIONS));
         writer.println("}");
-        writer.println();
     }
 
     private void writeMethodGenerics(IndentingWriter writer, JavaMethodDeclaration methodDeclaration) {
-        if (methodDeclaration.getReturnTypeGenerics() != null &&  !methodDeclaration.getReturnTypeGenerics().isEmpty()) {
+        if (methodDeclaration.getReturnTypeGenerics() != null && !methodDeclaration.getReturnTypeGenerics().isEmpty()) {
             Iterator<String> iterator = methodDeclaration.getReturnTypeGenerics().iterator();
             writer.print("<");
             while (iterator.hasNext()) {
