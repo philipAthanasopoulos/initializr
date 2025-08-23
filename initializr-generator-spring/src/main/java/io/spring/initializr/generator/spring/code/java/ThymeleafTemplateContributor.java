@@ -86,7 +86,7 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                             "  <body>%n" +
                             "    <h1>View %s</h1>%n" +
                             "    <table th:object=\"${%s}\">%n" +
-                                     getTableRowsForAllFields(domainClassDescription,4) +
+                                     getTableRowsForAllFields(domainClassDescription,3) +
                             "    </table>%n" +
                             "    <a th:href=\"@{/%ss/edit/{id}(id=${%s.id})}\">Edit %s</a> | %n" +
                             "    <form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">%n" +
