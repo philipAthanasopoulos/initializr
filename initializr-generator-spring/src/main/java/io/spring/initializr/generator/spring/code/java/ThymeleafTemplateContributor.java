@@ -42,7 +42,7 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                             "    <h1>Add %s</h1>%n" +
                             "    <form th:action=\"@{/%s/add}\" th:object=\"${%s}\" method=\"POST\">%n" +
                             "      <table>%n" +
-                            getFieldsInputs(domainClassDescription, 4) +
+                                     getFieldsInputs(domainClassDescription, 4) +
                             "      </table>%n" +
                             "      <input type=\"submit\" value=\"Create\" />%n" +
                             "    </form>%n" +
@@ -56,25 +56,25 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
     }
 
     private String getFieldsInputs(DomainClassDescription description, int nestingLevel) {
-        String res = "";
+        StringBuilder res = new StringBuilder();
         String nestingSpace = "  ".repeat(nestingLevel);
         for (FieldDescription field : description.getFields()) {
             if (field.getFieldName().equals("id")) {
                 continue;
             }
-            res += String.format(
+            res.append(String.format(
                     nestingSpace + "<tr>%n" +
-                            nestingSpace + "  <td>%s</td>%n" +
-                            nestingSpace + "  <td>%n" +
-                            nestingSpace + "    <input type=\"text\" th:field=\"*{%s}\" name=\"%s\" />%n" +
-                            nestingSpace + "  </td>%n" +
-                            nestingSpace + "</tr>%n",
+                    nestingSpace + "  <td>%s</td>%n" +
+                    nestingSpace + "  <td>%n" +
+                    nestingSpace + "    <input type=\"text\" th:field=\"*{%s}\" name=\"%s\" />%n" +
+                    nestingSpace + "  </td>%n" +
+                    nestingSpace + "</tr>%n",
                     field.getFieldName(),
                     field.getFieldName(),
                     field.getFieldName()
-            );
+            ));
         }
-        return res;
+        return res.toString();
     }
 
     private void generateViewTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
@@ -85,15 +85,13 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                             "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
                             "  <body>%n" +
                             "    <h1>View %s</h1>%n" +
-                            "    <div th:object=\"${%s}\">%n" +
-                            "      <table>%n" +
-                                     getFieldsViews(domainClassDescription,4) +
-                            "      </table>%n" +
-                            "      <a th:href=\"@{/%ss/edit/{id}(id = ${%s.id})}\">Edit %s</a> | " +
-                            "      <form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">" +
-                            "        <button type=\"submit\">Delete %s</button>" +
-                            "      </form>" +
-                            "    </div>%n" +
+                            "    <table th:object=\"${%s}\">%n" +
+                                     getTableRowsForAllFields(domainClassDescription,4) +
+                            "    </table>%n" +
+                            "    <a th:href=\"@{/%ss/edit/{id}(id=${%s.id})}\">Edit %s</a> | %n" +
+                            "    <form th:action=\"@{/%ss/delete/{id}(id=${%s.id})}\" method=\"post\" style=\"display:inline;\">%n" +
+                            "      <button type=\"submit\">Delete %s</button>%n" +
+                            "    </form>%n" +
                             "  </body>%n" +
                             "</html>%n",
                     domainClassDescription.getClassName(),
@@ -111,11 +109,11 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
         }
     }
 
-    private String getFieldsViews(DomainClassDescription description, int nestingLevel) {
-        String res = "";
+    private String getTableRowsForAllFields(DomainClassDescription description, int nestingLevel) {
+        StringBuilder res = new StringBuilder();
         String nestingSpace = "  ".repeat(nestingLevel);
         for (FieldDescription field : description.getFields()) {
-            res += String.format(
+            res.append(String.format(
                     nestingSpace + "<tr>%n" +
                     nestingSpace + "  <td><b>%s: </b></td>%n" +
                     nestingSpace + "  <td th:text=\"${%s.%s}\"></td>%n" +
@@ -123,9 +121,9 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                     field.getFieldName(),
                     description.getClassName().toLowerCase(),
                     field.getFieldName()
-            );
+            ));
         }
-        return res;
+        return res.toString();
     }
 
     private void generateEditTemplate(DomainClassDescription domainClassDescription, Path projectRoot) throws IOException {
@@ -161,18 +159,14 @@ public class ThymeleafTemplateContributor implements ProjectContributor {
                     "<html xmlns:th=\"http://www.thymeleaf.org\">%n" +
                     "  <body>%n" +
                     "    <h1>List of %s</h1>%n" +
-                    "    <div>%n" +
-                    "      <table>%n" +
-                    "        <tr th:each=\"%s : ${%s}\">%n" +
-                               getFieldsViews(domainClassDescription,4) +
-                    "        </tr>%n" +
-                    "        <tr>%n"+
-                    "          <td>%n" +
-                    "            <a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>%n" +
-                    "          </td>%n" +
-                    "        </tr>%n" +
-                    "      </table>%n" +
-                    "    </div>%n" +
+                    "    <table th:each=\"%s : ${%s}\">%n" +
+                           getTableRowsForAllFields(domainClassDescription,3) +
+                    "      <tr>%n"+
+                    "        <td>%n" +
+                    "          <a th:href=\"@{/%s/{id}(id=${%s.id})}\">View</a>%n" +
+                    "        </td>%n" +
+                    "      </tr>%n" +
+                    "    </table>%n" +
                     "    <a th:href=\"@{/%s/add}\">Add %s</a>%n" +
                     "  </body>%n" +
                     "</html>%n",

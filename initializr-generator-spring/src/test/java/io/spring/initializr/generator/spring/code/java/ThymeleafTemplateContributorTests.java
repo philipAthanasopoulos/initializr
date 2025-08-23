@@ -119,31 +119,27 @@ public class ThymeleafTemplateContributorTests {
         assertThat(project).textFile("src/main/resources/templates/user/list.html")
                 .containsExactly(
                 "<!DOCTYPE html>",
-                    "<html xmlns:th=\"http://www.thymeleaf.org\">",
-                    "  <body>",
-                    "    <h1>List of Users</h1>",
-                    "    <div>",
-                    "      <table>",
-                    "        <tr th:each=\"user : ${users}\">",
-                    "          <tr>",
-                    "            <td><b>id: </b></td>",
-                    "            <td th:text=\"${user.id}\"></td>",
-                    "          </tr>",
-                    "          <tr>",
-                    "            <td><b>firstName: </b></td>",
-                    "            <td th:text=\"${user.firstName}\"></td>",
-                    "          </tr>",
-                    "          <tr>",
-                    "            <td>",
-                    "              <a th:href=\"@{/users/{id}(id=${user.id})}\">View</a>",
-                    "            </td>",
-                    "          </tr>",
-                    "        </tr>",
-                    "      </table>",
-                    "    </div>",
-                    "    <a th:href=\"@{/users/add}\">Add User</a>",
-                    "  </body>",
-                    "</html>"
+                "<html xmlns:th=\"http://www.thymeleaf.org\">",
+                "  <body>",
+                "    <h1>List of Users</h1>",
+                "    <table th:each=\"user : ${users}\">",
+                "      <tr>",
+                "        <td><b>id: </b></td>",
+                "        <td th:text=\"${user.id}\"></td>",
+                "      </tr>",
+                "      <tr>",
+                "        <td><b>firstName: </b></td>",
+                "        <td th:text=\"${user.firstName}\"></td>",
+                "      </tr>",
+                "      <tr>",
+                "        <td>",
+                "          <a th:href=\"@{/users/{id}(id=${user.id})}\">View</a>",
+                "        </td>",
+                "      </tr>",
+                "    </table>",
+                "    <a th:href=\"@{/users/add}\">Add User</a>",
+                "  </body>",
+                "</html>"
                 );
     }
 
@@ -154,7 +150,29 @@ public class ThymeleafTemplateContributorTests {
         description.setApplicationName("MyDemoApplication");
         ProjectStructure project = this.projectTester.generate(description);
         assertThat(project).textFile("src/main/resources/templates/user/view.html")
-                .containsExactly(//TODO
+                .containsExactly(
+                    "<!DOCTYPE html>",
+                    "<html xmlns:th=\"http://www.thymeleaf.org\">",
+                    "  <body>",
+                    "    <h1>View User</h1>",
+                    "    <div th:object=\"${user}\">",
+                    "      <table>",
+                    "        <tr>",
+                    "          <td><b>id: </b></td>",
+                    "          <td th:text=\"${user.id}\"></td>",
+                    "        </tr>",
+                    "        <tr>",
+                    "          <td><b>firstName: </b></td>",
+                    "          <td th:text=\"${user.firstName}\"></td>",
+                    "        </tr>",
+                    "      </table>",
+                    "      <a th:href=\"@{/users/edit/{id}(id=${user.id})}\">Edit user</a> | ",
+                    "      <form th:action=\"@{/users/delete/{id}(id=${user.id})}\" method=\"post\" style=\"display:inline;\">",
+                    "        <button type=\"submit\">Delete user</button>",
+                    "      </form>",
+                    "    </div>",
+                    "  </body>",
+                    "</html>"
                 );
     }
 }
