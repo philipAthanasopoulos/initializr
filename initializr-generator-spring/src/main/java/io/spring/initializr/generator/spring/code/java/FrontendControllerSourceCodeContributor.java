@@ -48,7 +48,8 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
     private void generateControllerClasses(DomainClassDescription domainClassDescription, S sourceCode) {
         String domainClassName = domainClassDescription.getClassName();
 
-        JavaCompilationUnit controllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.web", domainClassDescription.getClassName() + "WebController");
+        JavaCompilationUnit controllerCompilationUnit = (JavaCompilationUnit) sourceCode
+                .createCompilationUnit(this.description.getPackageName() + ".controllers.web", domainClassDescription.getClassName() + "WebController");
         JavaTypeDeclaration controllerTypeDeclaration = controllerCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "WebController");
         controllerTypeDeclaration.modifiers(PUBLIC);
         controllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Controller"));

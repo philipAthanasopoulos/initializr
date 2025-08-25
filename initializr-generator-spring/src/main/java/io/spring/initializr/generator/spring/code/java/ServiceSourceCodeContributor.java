@@ -47,7 +47,8 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
 
         for (DomainClassDescription domainClassDescription : domainClassDescriptions) {
             if (domainClassDescription.isGenerateFrontendController() || domainClassDescription.isGenerateRestController()) {
-                JavaCompilationUnit serviceCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".services", domainClassDescription.getClassName() + "Service");
+                JavaCompilationUnit serviceCompilationUnit = (JavaCompilationUnit) sourceCode.
+                        createCompilationUnit(this.description.getPackageName() + ".services", domainClassDescription.getClassName() + "Service");
                 JavaTypeDeclaration serviceTypeDeclaration = serviceCompilationUnit.createTypeDeclaration(domainClassDescription.getClassName() + "Service");
                 serviceTypeDeclaration.modifiers(PUBLIC);
                 serviceTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Service"));
@@ -134,21 +135,27 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
     //TODO
     //FIXME using CodeBlock add and add statements with builder
     private void addPutMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
-        CodeBlock code = CodeBlock.of(
-                "return this." + repositoryFieldDeclaration.getName()
-                        + ".findById(id).map("
-                        + "existing" + domainClassDescription.getClassName()
-                        + "->{ \n"
-                        + updateFieldsCodeBlock(domainClassDescription)
-                        + "\t\t\t\treturn " + repositoryFieldDeclaration.getName()
-                        + ".save(" + "existing" + domainClassDescription.getClassName() + ");\n"
-                        + "\t\t})\n"
-                        + "\t\t.orElseGet( () -> {\n"
-                        + "\t\t\t\treturn " + repositoryFieldDeclaration.getName()
-                        + ".save("
-                        + domainClassDescription.getClassName().toLowerCase() + ");\n"
-                        + "\t\t});\n"
-        );
+        String repositoryName = repositoryFieldDeclaration.getName();
+        String className = domainClassDescription.getClassName();
+        String lowerClassName = className.toLowerCase();
+        String updateFields = updateFieldsCodeBlock(domainClassDescription);
+
+        CodeBlock code = CodeBlock.of(String.format(
+                "return this.%s.findById(id).map(existing%s -> {%n" +
+                "%s" +
+                "  return %s.save(existing%s);%n" +
+                "})%n" +
+                ".orElseGet(() -> {%n" +
+                "  return %s.save(%s);%n" +
+                "});%n  ",
+                repositoryName,
+                className,
+                updateFields,
+                repositoryName,
+                className,
+                repositoryName,
+                lowerClassName
+        ));
         JavaMethodDeclaration saveEntityMethodDeclaration = JavaMethodDeclaration
                 .method("update" + domainClassDescription.getClassName())
                 .modifiers(PUBLIC)
@@ -169,16 +176,15 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
     }
 
     private String updateFieldsCodeBlock(DomainClassDescription domainClassDescription) {
-        String res = "";
+        StringBuilder res = new StringBuilder();
         for (FieldDescription field : domainClassDescription.getFields()) {
             if (field.getFieldName().equals("id")) continue;
 
             String getter = "get" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
             String setter = "set" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
-            res += "\t\t\t\texisting" + domainClassDescription.getClassName() + "." + setter + "("
-                    + domainClassDescription.getClassName().toLowerCase() + "." + getter + "());\n";
+            res.append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter).append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n");
         }
-        return res;
+        return res.toString();
 
     }
 

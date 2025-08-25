@@ -47,7 +47,8 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
             if (domainClassDescription.isGenerateRestController()) {
                 String domainClassName = domainClassDescription.getClassName();
 
-                JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode.createCompilationUnit(this.description.getPackageName() + ".controllers.api", domainClassName + "Controller");
+                JavaCompilationUnit restControllerCompilationUnit = (JavaCompilationUnit) sourceCode
+                        .createCompilationUnit(this.description.getPackageName() + ".controllers.api", domainClassName + "Controller");
                 JavaTypeDeclaration restControllerTypeDeclaration = restControllerCompilationUnit.createTypeDeclaration(domainClassName + "Controller");
                 restControllerTypeDeclaration.modifiers(PUBLIC);
                 restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RestController"));
