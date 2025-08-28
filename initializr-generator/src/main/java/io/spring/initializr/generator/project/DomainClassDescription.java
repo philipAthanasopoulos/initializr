@@ -61,4 +61,8 @@ public class DomainClassDescription {
     public void setUseLombok(boolean useLombok) {
         this.useLombok = useLombok;
     }
+
+    public FieldDescription getPrimaryKeyField() {
+        return fields.get(0);
+    }
 }

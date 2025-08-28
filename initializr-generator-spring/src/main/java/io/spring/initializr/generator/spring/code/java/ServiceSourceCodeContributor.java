@@ -110,7 +110,7 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                 .parameters(
                         Parameter.of(
                                 "id",
-                                "java.lang.Long"
+                                domainClassDescription.getPrimaryKeyField().getClassType()
                         )
                 )
                 .body(code);
@@ -167,7 +167,7 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                         ),
                         Parameter.of(
                                 "id",
-                                "java.lang.Long"
+                                domainClassDescription.getPrimaryKeyField().getClassType()
                         )
                 )
                 .body(code);
@@ -200,7 +200,7 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                 .parameters(
                         Parameter.of(
                                 "id",
-                                "java.lang.Long"
+                                domainClassDescription.getPrimaryKeyField().getClassType()
                         )
                 )
                 .body(code);

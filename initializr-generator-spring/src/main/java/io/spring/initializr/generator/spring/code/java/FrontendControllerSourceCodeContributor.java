@@ -62,14 +62,16 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
         addAutowiredConstructor(controllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
         addListMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
         addAddMethod(controllerTypeDeclaration, domainClassName);
-        addCreateMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
-        addViewMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
-        addEditMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
-        addEditSubmitMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
-        addDeleteMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassName);
+        addCreateMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassDescription);
+        addViewMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassDescription);
+        addEditMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassDescription);
+        addEditSubmitMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassDescription);
+        addDeleteMethod(controllerTypeDeclaration, serviceFieldDeclaration, domainClassDescription);
     }
 
-    private void addCreateMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addCreateMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, DomainClassDescription domainClassDescription) {
+        String domainClassName = domainClassDescription.getClassName();
+
         CodeBlock code = CodeBlock.builder()
                 .addStatement("$L.save$L($L)", serviceFieldDeclaration.getName(), domainClassName, domainClassName.toLowerCase())
                 .addStatement("return $S", "redirect:/" + domainClassName.toLowerCase() + "s")
@@ -136,7 +138,9 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
         controllerTypeDeclaration.addMethodDeclaration(listMethod);
     }
 
-    private void addEditMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addEditMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, DomainClassDescription domainClassDescription) {
+        String domainClassName = domainClassDescription.getClassName();
+
         CodeBlock code = CodeBlock.builder()
                 .addStatement("model.addAttribute($S, $L.get$LById(id))", domainClassName.toLowerCase(), serviceFieldDeclaration.getName(), domainClassName)
                 .addStatement("return $S", domainClassName.toLowerCase() + "/edit")
@@ -148,7 +152,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
                 .parameters(
                         Parameter.of("model", "org.springframework.ui.Model"),
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
 
@@ -161,7 +165,9 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
         controllerTypeDeclaration.addMethodDeclaration(listMethod);
     }
 
-    private void addEditSubmitMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addEditSubmitMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, DomainClassDescription domainClassDescription) {
+        String domainClassName = domainClassDescription.getClassName();
+
         CodeBlock code = CodeBlock.builder()
                 .addStatement("$L.update$L($L, id)", serviceFieldDeclaration.getName(), domainClassName, domainClassName.toLowerCase())
                 .addStatement("return $S", "redirect:/" + domainClassName.toLowerCase() + "s")
@@ -176,7 +182,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
                                         (annotation) -> annotation.add("value", domainClassName.toLowerCase()))
                                 .build(),
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )
@@ -191,7 +197,9 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
     }
 
 
-    private void addViewMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addViewMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, DomainClassDescription domainClassDescription) {
+        String domainClassName = domainClassDescription.getClassName();
+
         CodeBlock code = CodeBlock.builder()
                 .addStatement("model.addAttribute($S, $L.get$LById(id))", domainClassName.toLowerCase(), serviceFieldDeclaration.getName(), domainClassName)
                 .addStatement("return $S", domainClassName.toLowerCase() + "/view")
@@ -203,7 +211,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
                 .parameters(
                         Parameter.of("model", "org.springframework.ui.Model"),
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
 
@@ -216,7 +224,9 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
         controllerTypeDeclaration.addMethodDeclaration(listMethod);
     }
 
-    private void addDeleteMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
+    private void addDeleteMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, DomainClassDescription domainClassDescription) {
+        String domainClassName = domainClassDescription.getClassName();
+
         CodeBlock code = CodeBlock.builder()
                 .addStatement("$L.delete$LById(id)", serviceFieldDeclaration.getName(), domainClassName)
                 .addStatement("return \"redirect:/$Ls\"", domainClassName.toLowerCase())
@@ -228,10 +238,9 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
                 .parameters(
                         Parameter.of("model", "org.springframework.ui.Model"),
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
-
                 )
                 .returning("java.lang.String")
                 .body(code);

@@ -61,10 +61,10 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
 
                 addAutowiredConstructor(restControllerTypeDeclaration, serviceFieldDeclaration, domainClassServiceName);
                 addFindAllMethod(domainClassName, restControllerTypeDeclaration);
-                addGetEntityByIdMethod(domainClassName, restControllerTypeDeclaration);
+                addGetEntityByIdMethod(domainClassDescription, restControllerTypeDeclaration);
                 addCreateEntityMethod(domainClassName, restControllerTypeDeclaration);
-                addUpdateEntityMethod(domainClassName, restControllerTypeDeclaration);
-                addDeleteEntityMethod(domainClassName, restControllerTypeDeclaration);
+                addUpdateEntityMethod(domainClassDescription, restControllerTypeDeclaration);
+                addDeleteEntityMethod(domainClassDescription, restControllerTypeDeclaration);
 
                 List<AssociationDescription> associationsDescirptionsOfGivenDomain = this.associationDescriptions.stream()
                         .filter(association -> domainClassName.equals(association.getFirstClassName()) || domainClassName.equals(association.getSecondClassName()))
@@ -116,7 +116,8 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         restControllerTypeDeclaration.addMethodDeclaration(autowiredConstructorDeclaration);
     }
 
-    private void addGetEntityByIdMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+    private void addGetEntityByIdMethod(DomainClassDescription domainClassDescription, JavaTypeDeclaration restControllerTypeDeclaration) {
+        String domainClassName = domainClassDescription.getClassName();
         CodeBlock code = CodeBlock.ofStatement("return $LService.get$LById(id)", domainClassName.toLowerCase(), domainClassName);
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("get" + domainClassName + "ById")
@@ -124,7 +125,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                 .returning(this.description.getPackageName() + ".domain." + domainClassName)
                 .parameters(
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )
@@ -151,7 +152,8 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
     }
 
-    private void addUpdateEntityMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+    private void addUpdateEntityMethod(DomainClassDescription domainClassDescription, JavaTypeDeclaration restControllerTypeDeclaration) {
+        String domainClassName = domainClassDescription.getClassName();
         CodeBlock code = CodeBlock.ofStatement("return $LService.update$L($L, id)", domainClassName.toLowerCase(), domainClassName, domainClassName.toLowerCase());
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("update" + domainClassName)
@@ -164,7 +166,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                                 .build(),
 
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )
@@ -174,7 +176,9 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
         restControllerTypeDeclaration.addMethodDeclaration(getEntityByIdMethodDeclaration);
     }
 
-    private void addDeleteEntityMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
+    private void addDeleteEntityMethod(DomainClassDescription domainClassDescription, JavaTypeDeclaration restControllerTypeDeclaration) {
+
+        String domainClassName = domainClassDescription.getClassName();
         CodeBlock code = CodeBlock.ofStatement("$LService.delete$LById(id)", domainClassName.toLowerCase(), domainClassName);
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("delete" + domainClassName + "ById")
@@ -182,7 +186,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                 .returning("void")
                 .parameters(
                         Parameter.builder("id")
-                                .type("java.lang.Long")
+                                .type(domainClassDescription.getPrimaryKeyField().getClassType())
                                 .annotate(ClassName.of("org.springframework.web.bind.annotation.PathVariable"))
                                 .build()
                 )

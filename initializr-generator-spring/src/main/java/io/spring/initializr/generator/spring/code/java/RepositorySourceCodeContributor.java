@@ -53,7 +53,8 @@ public class RepositorySourceCodeContributor<T extends TypeDeclaration, C extend
             repositoryTypeDeclaration.extend("org.springframework.data.jpa.repository.JpaRepository");
             repositoryTypeDeclaration.extendedGenerics(
                     this.description.getPackageName() + ".domain." + domainClassDescription.getClassName(),
-                    "java.lang.Long");
+                    domainClassDescription.getPrimaryKeyField().getClassType()
+            );
             repositoryTypeDeclaration.modifiers(PUBLIC | INTERFACE);
         }
 
