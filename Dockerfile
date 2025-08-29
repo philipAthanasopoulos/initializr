@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-EXPOSE 8000
+EXPOSE 8080
 
 ENTRYPOINT ["sh", "-c", "cd /app && mvn clean install -DskipTests=true && cd /app/initializr-service-sample && mvn spring-boot:run"]
 
