@@ -132,8 +132,6 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
         serviceTypeDeclaration.addMethodDeclaration(saveEntityMethodDeclaration);
     }
 
-    //TODO
-    //FIXME using CodeBlock add and add statements with builder
     private void addPutMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
         String repositoryName = repositoryFieldDeclaration.getName();
         String className = domainClassDescription.getClassName();
@@ -143,11 +141,10 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
         CodeBlock code = CodeBlock.of(String.format(
                 "return this.%s.findById(id).map(existing%s -> {%n" +
                 "%s" +
-                "  return %s.save(existing%s);%n" +
-                "})%n" +
-                ".orElseGet(() -> {%n" +
-                "  return %s.save(%s);%n" +
-                "});%n  ",
+                "      return %s.save(existing%s);%n" +
+                "    }).orElseGet(() -> {%n" +
+                "      return %s.save(%s);%n" +
+                "    });%n  ",
                 repositoryName,
                 className,
                 updateFields,
@@ -179,19 +176,14 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
         StringBuilder res = new StringBuilder();
         for (FieldDescription field : domainClassDescription.getFields()) {
             if (field.getFieldName().equals("id")) continue;
-
             String getter = "get" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
             String setter = "set" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
-            res.append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter).append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n");
+            res.append("      existing").append(domainClassDescription.getClassName()).append(".").append(setter).append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n");
         }
         return res.toString();
-
     }
 
-    private void addDeleteByIdMethod(DomainClassDescription domainClassDescription,
-                                     JavaFieldDeclaration repositoryFieldDeclaration,
-                                     JavaTypeDeclaration serviceTypeDeclaration) {
-
+    private void addDeleteByIdMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
         CodeBlock code = CodeBlock.builder().addStatement("this.$L.deleteById(id)", repositoryFieldDeclaration.getName()).build();
         JavaMethodDeclaration deleteEntityByIdMethod = JavaMethodDeclaration
                 .method("delete" + domainClassDescription.getClassName() + "ById")

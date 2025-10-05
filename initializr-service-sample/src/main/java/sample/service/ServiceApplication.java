@@ -16,9 +16,13 @@
 
 package sample.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.spring.initializr.web.support.SpringIoInitializrMetadataUpdateStrategy;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -38,10 +42,10 @@ public class ServiceApplication {
     }
 
     // This bean opt-in for fetching available Spring Boot versions from https://spring.io
-//	@Bean
-//	SpringIoInitializrMetadataUpdateStrategy springIoInitializrMetadataUpdateStrategy(
-//			RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
-//		return new SpringIoInitializrMetadataUpdateStrategy(restTemplateBuilder.build(), objectMapper);
-//	}
+    @Bean
+    SpringIoInitializrMetadataUpdateStrategy springIoInitializrMetadataUpdateStrategy(
+            RestTemplateBuilder restTemplateBuilder, ObjectMapper objectMapper) {
+        return new SpringIoInitializrMetadataUpdateStrategy(restTemplateBuilder.build(), objectMapper);
+    }
 
 }

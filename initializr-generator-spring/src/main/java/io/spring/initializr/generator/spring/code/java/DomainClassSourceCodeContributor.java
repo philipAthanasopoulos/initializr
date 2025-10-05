@@ -197,6 +197,16 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                     .body(code);
             domainClassTypeDeclaration.addMethodDeclaration(fieldGetter);
         }
+
+//        //association getters
+//        this.description.getAssotiationDescriptions().stream().filter(association -> {
+//            String firstAssociationName = association.getFirstClassName();
+//            String secondAssociationName = association.getSecondClassName();
+//            String currentDomainName = domainClassDescription.getClassName();
+//            return firstAssociationName.equals(currentDomainName) || secondAssociationName.equals(currentDomainName);
+//        }).forEach(association -> {
+//
+//        });
     }
 
     private void generateFields(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {

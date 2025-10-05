@@ -2,9 +2,8 @@ FROM maven:3.9.6-eclipse-temurin-21
 
 WORKDIR /app
 
-COPY . .
+COPY /initializr-service-sample/target/initializr-service-sample-0.22.0-SNAPSHOT.jar jarfile
 
 EXPOSE 8080
 
-ENTRYPOINT ["sh", "-c", "cd /app && mvn clean install -DskipTests=true && cd /app/initializr-service-sample && mvn spring-boot:run"]
-
+ENTRYPOINT ["java","-jar","jarfile"]

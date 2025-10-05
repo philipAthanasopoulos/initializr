@@ -3,14 +3,14 @@ package io.spring.initializr.generator.project;
 public class AssociationDescription {
     private String firstClassName;
     private String secondClassName;
-    private AssotiationType assotiationType;
+    private AssociationType associationType;
 
     public AssociationDescription(){}
 
-    public AssociationDescription(String firstClassName, String secondClassName, AssotiationType assotiationType) {
+    public AssociationDescription(String firstClassName, String secondClassName, AssociationType associationType) {
         this.firstClassName = firstClassName;
         this.secondClassName = secondClassName;
-        this.assotiationType = assotiationType;
+        this.associationType = associationType;
     }
 
     public String getFirstClassName() {
@@ -29,11 +29,11 @@ public class AssociationDescription {
         this.secondClassName = secondClassName;
     }
 
-    public AssotiationType getAssotiationType() {
-        return assotiationType;
+    public AssociationType getAssotiationType() {
+        return associationType;
     }
 
-    public void setAssotiationType(AssotiationType assotiationType) {
-        this.assotiationType = assotiationType;
+    public void setAssotiationType(AssociationType associationType) {
+        this.associationType = associationType;
     }
 }
