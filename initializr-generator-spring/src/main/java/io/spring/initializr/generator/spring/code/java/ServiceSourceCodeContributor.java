@@ -5,6 +5,7 @@ import io.spring.initializr.generator.language.java.JavaCompilationUnit;
 import io.spring.initializr.generator.language.java.JavaFieldDeclaration;
 import io.spring.initializr.generator.language.java.JavaMethodDeclaration;
 import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
+import io.spring.initializr.generator.project.AssociationDescription;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
@@ -140,11 +141,11 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
 
         CodeBlock code = CodeBlock.of(String.format(
                 "return this.%s.findById(id).map(existing%s -> {%n" +
-                "%s" +
-                "      return %s.save(existing%s);%n" +
-                "    }).orElseGet(() -> {%n" +
-                "      return %s.save(%s);%n" +
-                "    });%n  ",
+                        "%s" +
+                        "      return %s.save(existing%s);%n" +
+                        "    }).orElseGet(() -> {%n" +
+                        "      return %s.save(%s);%n" +
+                        "    });%n  ",
                 repositoryName,
                 className,
                 updateFields,
@@ -174,11 +175,92 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
 
     private String updateFieldsCodeBlock(DomainClassDescription domainClassDescription) {
         StringBuilder res = new StringBuilder();
+        String getter = "";
+        String setter = "";
         for (FieldDescription field : domainClassDescription.getFields()) {
             if (field.getFieldName().equals("id")) continue;
-            String getter = "get" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
-            String setter = "set" + field.getFieldName().substring(0, 1).toUpperCase() + field.getFieldName().substring(1);
-            res.append("      existing").append(domainClassDescription.getClassName()).append(".").append(setter).append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n");
+            getter = "get" + capitalize(field.getFieldName());
+            setter = "set" + capitalize(field.getFieldName());
+            res.append("      if (")
+                .append(domainClassDescription.getClassName().toLowerCase())
+                .append(".").append(getter).append("() != null) {\n")
+                .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                .append("      }\n");
+        }
+
+        List<AssociationDescription> associations = this.description.getAssotiationDescriptions().stream().filter(association ->
+                association.getFirstClassName().equals(domainClassDescription.getClassName()) ||
+                        association.getSecondClassName().equals(domainClassDescription.getClassName())
+        ).toList();
+        for (AssociationDescription association : associations) {
+            switch (association.getAssotiationType()) {
+                case ONE_TO_ONE: {
+                    if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
+                        getter = "get" + capitalize(association.getSecondClassName());
+                        setter = "set" + capitalize(association.getSecondClassName());
+                    } else {
+                        getter = "get" + capitalize(association.getFirstClassName());
+                        setter = "set" + capitalize(association.getFirstClassName());
+                    }
+                    res.append("      if (")
+                            .append(domainClassDescription.getClassName().toLowerCase())
+                            .append(".").append(getter).append("() != null) {\n")
+                            .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                            .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                            .append("      }\n");
+                    break;
+                }
+                case ONE_TO_MANY: {
+                    if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
+                        getter = "get" + capitalize(association.getSecondClassName()) + "s";
+                        setter = "set" + capitalize(association.getSecondClassName()) + "s";
+                    } else {
+                        getter = "get" + capitalize(association.getFirstClassName());
+                        setter = "set" + capitalize(association.getFirstClassName());
+                    }
+                    res.append("      if (")
+                            .append(domainClassDescription.getClassName().toLowerCase())
+                            .append(".").append(getter).append("() != null) {\n")
+                            .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                            .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                            .append("      }\n");
+                    break;
+                }
+                case MANY_TO_ONE: {
+                    if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
+                        getter = "get" + capitalize(association.getSecondClassName());
+                        setter = "set" + capitalize(association.getSecondClassName());
+                    } else {
+                        getter = "get" + capitalize(association.getFirstClassName()) + "s";
+                        setter = "set" + capitalize(association.getFirstClassName()) + "s";
+                    }
+                    res.append("      if (")
+                            .append(domainClassDescription.getClassName().toLowerCase())
+                            .append(".").append(getter).append("() != null) {\n")
+                            .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                            .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                            .append("      }\n");
+                    break;
+
+                }
+                case MANY_TO_MANY: {
+                    if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
+                        getter = "get" + capitalize(association.getSecondClassName()) + "s";
+                        setter = "set" + capitalize(association.getSecondClassName()) + "s";
+                    } else {
+                        getter = "get" + capitalize(association.getFirstClassName()) + "s";
+                        setter = "set" + capitalize(association.getFirstClassName()) + "s";
+                    }
+                    res.append("      if (")
+                            .append(domainClassDescription.getClassName().toLowerCase())
+                            .append(".").append(getter).append("() != null) {\n")
+                            .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                            .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                            .append("      }\n");
+                    break;
+                }
+            }
         }
         return res.toString();
     }
@@ -201,6 +283,10 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
 
     private String getDomainClassImport(DomainClassDescription domainClassDescription) {
         return this.description.getPackageName() + ".domain." + domainClassDescription.getClassName();
+    }
+
+    public String capitalize(String s) {
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
     }
 
     @Override
