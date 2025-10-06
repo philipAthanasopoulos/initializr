@@ -103,7 +103,7 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
 
 
     private void addGetByIdMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
-        CodeBlock code = CodeBlock.builder().addStatement("return this.$L.getById(id)", repositoryFieldDeclaration.getName()).build();
+        CodeBlock code = CodeBlock.builder().addStatement("return this.$L.findById(id).orElse(null)", repositoryFieldDeclaration.getName()).build();
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
                 .method("get" + domainClassDescription.getClassName() + "ById")
                 .modifiers(PUBLIC)

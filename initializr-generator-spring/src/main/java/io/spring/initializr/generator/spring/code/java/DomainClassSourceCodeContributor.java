@@ -93,7 +93,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(secondTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.Set");
+                        .returning("java.util.List");
 
                 firstField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"), builder -> builder.set("mappedBy", firstTypeDeclaration.getName().toLowerCase()));
                 firstTypeDeclaration.addFieldDeclaration(firstField);
