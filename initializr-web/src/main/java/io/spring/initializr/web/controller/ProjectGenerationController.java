@@ -61,7 +61,7 @@ import org.springframework.web.bind.annotation.*;
  * @param <R> the {@link ProjectRequest} type to use to bind request parameters
  * @author Stephane Nicoll
  */
-@CrossOrigin
+@CrossOrigin(value = "https://bootcrane.dev")
 @RestController
 public abstract class ProjectGenerationController<R extends ProjectRequest> {
 

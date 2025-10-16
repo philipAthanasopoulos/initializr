@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Stephane Nicoll
  * @author Moritz Halbritter
  */
-@CrossOrigin
+@CrossOrigin(value = "https://bootcrane.dev")
 @RestController
 public class ProjectMetadataController extends AbstractMetadataController {
 
