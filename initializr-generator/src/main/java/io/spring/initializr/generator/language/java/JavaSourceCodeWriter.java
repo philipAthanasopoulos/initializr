@@ -237,8 +237,14 @@ public class JavaSourceCodeWriter implements SourceCodeWriter<JavaSourceCode> {
         Iterator<Parameter> it = parameters.iterator();
         while (it.hasNext()) {
             Parameter parameter = it.next();
+            String genericsContainer = "";
+            if (parameter.getGenerics() != null && !parameter.getGenerics().isEmpty()) {
+                genericsContainer = "<" + parameter.getGenerics().stream()
+                        .map(this::getUnqualifiedName)
+                        .collect(Collectors.joining(", ")) + ">";
+            }
             writeAnnotations(writer, parameter, () -> writer.print(" "));
-            writer.print(getUnqualifiedName(parameter.getType()) + " " + parameter.getName());
+            writer.print(getUnqualifiedName(parameter.getType()) + genericsContainer + " " + parameter.getName());
             if (it.hasNext()) {
                 writer.print(", ");
             }

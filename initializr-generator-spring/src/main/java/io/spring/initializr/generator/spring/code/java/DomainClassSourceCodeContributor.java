@@ -121,7 +121,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(firstTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.Set");
+                        .returning("java.util.List");
                 secondField.annotations().add(ClassName.of("jakarta.persistence.OneToMany"), builder -> builder.set("mappedBy", secondTypeDeclaration.getName().toLowerCase()));
 
                 secondTypeDeclaration.addFieldDeclaration(secondField);
@@ -131,7 +131,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(secondTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.Set");
+                        .returning("java.util.List");
                 firstField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
                 firstTypeDeclaration.addFieldDeclaration(firstField);
 
@@ -139,7 +139,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         .field(firstTypeDeclaration.getName().toLowerCase() + "s")
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
-                        .returning("java.util.Set");
+                        .returning("java.util.List");
                 secondField.annotations().add(ClassName.of("jakarta.persistence.ManyToMany"));
                 secondTypeDeclaration.addFieldDeclaration(secondField);
             }
@@ -198,15 +198,96 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
             domainClassTypeDeclaration.addMethodDeclaration(fieldGetter);
         }
 
-//        //association getters
-//        this.description.getAssotiationDescriptions().stream().filter(association -> {
-//            String firstAssociationName = association.getFirstClassName();
-//            String secondAssociationName = association.getSecondClassName();
-//            String currentDomainName = domainClassDescription.getClassName();
-//            return firstAssociationName.equals(currentDomainName) || secondAssociationName.equals(currentDomainName);
-//        }).forEach(association -> {
-//
-//        });
+        //association getters
+        this.description.getAssotiationDescriptions().stream().filter(association -> {
+            String firstAssociationName = association.getFirstClassName();
+            String secondAssociationName = association.getSecondClassName();
+            String currentDomainName = domainClassDescription.getClassName();
+            return firstAssociationName.equals(currentDomainName) || secondAssociationName.equals(currentDomainName);
+        }).forEach(association -> {
+            String first = association.getFirstClassName();
+            String second = association.getSecondClassName();
+            String current = domainClassDescription.getClassName();
+           if (first.equals(current)) {
+                switch (association.getAssotiationType()) {
+                    case ONE_TO_ONE, MANY_TO_ONE -> {
+                        String fieldName = second.toLowerCase();
+                        CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
+                        JavaMethodDeclaration getter = JavaMethodDeclaration
+                                .method("get" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning(second)
+                                .body(code);
+                        domainClassTypeDeclaration.addMethodDeclaration(getter);
+
+                        JavaMethodDeclaration setter = JavaMethodDeclaration
+                                .method("set" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("void")
+                                .parameters(Parameter.of(fieldName, second))
+                                .body(CodeBlock.ofStatement("this.$L = $L", fieldName, fieldName));
+                        domainClassTypeDeclaration.addMethodDeclaration(setter);
+                    }
+                    case ONE_TO_MANY, MANY_TO_MANY -> {
+                        String fieldName = second.toLowerCase() + "s";
+                        CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
+                        JavaMethodDeclaration getter = JavaMethodDeclaration
+                                .method("get" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("java.util.List")
+                                .body(code);
+                        domainClassTypeDeclaration.addMethodDeclaration(getter);
+
+                        JavaMethodDeclaration setter = JavaMethodDeclaration
+                                .method("set" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("void")
+                                .parameters(Parameter.of(fieldName, "java.util.List", List.of(second)))
+                                .body(CodeBlock.ofStatement("this.$L = $L", fieldName, fieldName));
+                        domainClassTypeDeclaration.addMethodDeclaration(setter);
+                    }
+                }
+            } else if (second.equals(current)) {
+                switch (association.getAssotiationType()) {
+                    case ONE_TO_ONE, ONE_TO_MANY -> {
+                        String fieldName = first.toLowerCase();
+                        CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
+                        JavaMethodDeclaration getter = JavaMethodDeclaration
+                                .method("get" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning(first)
+                                .body(code);
+                        domainClassTypeDeclaration.addMethodDeclaration(getter);
+
+                        JavaMethodDeclaration setter = JavaMethodDeclaration
+                                .method("set" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("void")
+                                .parameters(Parameter.of(fieldName, first))
+                                .body(CodeBlock.ofStatement("this.$L = $L", fieldName, fieldName));
+                        domainClassTypeDeclaration.addMethodDeclaration(setter);
+                    }
+                    case MANY_TO_ONE, MANY_TO_MANY -> {
+                        String fieldName = first.toLowerCase() + "s";
+                        CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
+                        JavaMethodDeclaration getter = JavaMethodDeclaration
+                                .method("get" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("java.util.List")
+                                .body(code);
+                        domainClassTypeDeclaration.addMethodDeclaration(getter);
+
+                        JavaMethodDeclaration setter = JavaMethodDeclaration
+                                .method("set" + capitalize(fieldName))
+                                .modifiers(PUBLIC)
+                                .returning("void")
+                                .parameters(Parameter.of(fieldName, "java.util.List", List.of(first)))
+                                .body(CodeBlock.ofStatement("this.$L = $L", fieldName, fieldName));
+                        domainClassTypeDeclaration.addMethodDeclaration(setter);
+                    }
+                }
+            }
+        });
     }
 
     private void generateFields(DomainClassDescription domainClassDescription, JavaTypeDeclaration domainClassTypeDeclaration) {

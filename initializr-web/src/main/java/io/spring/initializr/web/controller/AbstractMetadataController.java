@@ -29,7 +29,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
  *
  * @author Stephane Nicoll
  */
-@CrossOrigin(value = "https://bootcrane.dev")
+@CrossOrigin(origins = {"https://bootcrane.dev", "http://localhost:8081/","http://127.0.0.0:8081/"})
 public abstract class AbstractMetadataController {
 
 	protected final InitializrMetadataProvider metadataProvider;
