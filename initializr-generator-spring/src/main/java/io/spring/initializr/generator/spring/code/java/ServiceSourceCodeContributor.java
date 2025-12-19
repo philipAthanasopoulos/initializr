@@ -10,6 +10,7 @@ import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.contributor.ProjectContributor;
+import org.atteo.evo.inflector.English;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.reflect.Modifier.*;
+import static org.atteo.evo.inflector.English.plural;
 
 public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>> implements ProjectContributor {
 
@@ -73,7 +75,7 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
     private void addFindAllMethod(DomainClassDescription domainClassDescription, JavaFieldDeclaration repositoryFieldDeclaration, JavaTypeDeclaration serviceTypeDeclaration) {
         CodeBlock code = CodeBlock.ofStatement("return $L.findAll()", repositoryFieldDeclaration.getName());
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
-                .method("getAll" + domainClassDescription.getClassName() + "s")
+                .method("getAll" + plural(domainClassDescription.getClassName()))
                 .modifiers(PUBLIC)
                 .returning("java.util.List")
                 .returnGenerics(domainClassDescription.getClassName())
@@ -182,11 +184,11 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
             getter = "get" + capitalize(field.getFieldName());
             setter = "set" + capitalize(field.getFieldName());
             res.append("      if (")
-                .append(domainClassDescription.getClassName().toLowerCase())
-                .append(".").append(getter).append("() != null) {\n")
-                .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
-                .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
-                .append("      }\n");
+                    .append(domainClassDescription.getClassName().toLowerCase())
+                    .append(".").append(getter).append("() != null) {\n")
+                    .append("        existing").append(domainClassDescription.getClassName()).append(".").append(setter)
+                    .append("(").append(domainClassDescription.getClassName().toLowerCase()).append(".").append(getter).append("());\n")
+                    .append("      }\n");
         }
 
         List<AssociationDescription> associations = this.description.getAssotiationDescriptions().stream().filter(association ->
@@ -213,8 +215,8 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                 }
                 case ONE_TO_MANY: {
                     if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
-                        getter = "get" + capitalize(association.getSecondClassName()) + "s";
-                        setter = "set" + capitalize(association.getSecondClassName()) + "s";
+                        getter = "get" + plural(capitalize(association.getSecondClassName()));
+                        setter = "set" + plural(capitalize(association.getSecondClassName()));
                     } else {
                         getter = "get" + capitalize(association.getFirstClassName());
                         setter = "set" + capitalize(association.getFirstClassName());
@@ -232,8 +234,8 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                         getter = "get" + capitalize(association.getSecondClassName());
                         setter = "set" + capitalize(association.getSecondClassName());
                     } else {
-                        getter = "get" + capitalize(association.getFirstClassName()) + "s";
-                        setter = "set" + capitalize(association.getFirstClassName()) + "s";
+                        getter = "get" + plural(capitalize(association.getFirstClassName()));
+                        setter = "set" + plural(capitalize(association.getFirstClassName()));
                     }
                     res.append("      if (")
                             .append(domainClassDescription.getClassName().toLowerCase())
@@ -246,11 +248,11 @@ public class ServiceSourceCodeContributor<T extends TypeDeclaration, C extends C
                 }
                 case MANY_TO_MANY: {
                     if (domainClassDescription.getClassName().equals(association.getFirstClassName())) {
-                        getter = "get" + capitalize(association.getSecondClassName()) + "s";
-                        setter = "set" + capitalize(association.getSecondClassName()) + "s";
+                        getter = "get" + plural(capitalize(association.getSecondClassName()));
+                        setter = "set" + plural(capitalize(association.getSecondClassName()));
                     } else {
-                        getter = "get" + capitalize(association.getFirstClassName()) + "s";
-                        setter = "set" + capitalize(association.getFirstClassName()) + "s";
+                        getter = "get" + plural(capitalize(association.getFirstClassName()));
+                        setter = "set" + plural(capitalize(association.getFirstClassName()));
                     }
                     res.append("      if (")
                             .append(domainClassDescription.getClassName().toLowerCase())

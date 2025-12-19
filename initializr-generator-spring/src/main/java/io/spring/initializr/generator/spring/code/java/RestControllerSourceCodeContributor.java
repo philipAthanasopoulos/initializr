@@ -9,6 +9,7 @@ import io.spring.initializr.generator.project.AssociationDescription;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.contributor.ProjectContributor;
+import org.atteo.evo.inflector.English;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.reflect.Modifier.*;
+import static org.atteo.evo.inflector.English.plural;
 
 public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>> implements ProjectContributor {
 
@@ -53,7 +55,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
                 restControllerTypeDeclaration.modifiers(PUBLIC);
                 restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RestController"));
                 restControllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
-                        (annotation) -> annotation.add("value", "/api/" + domainClassName.toLowerCase() + "s"));
+                        (annotation) -> annotation.add("value", "/api/" + plural(domainClassName.toLowerCase())));
 
                 String domainClassServiceName = domainClassName.toLowerCase() + "Service";
 
@@ -86,7 +88,7 @@ public class RestControllerSourceCodeContributor<T extends TypeDeclaration, C ex
     private void addFindAllMethod(String domainClassName, JavaTypeDeclaration restControllerTypeDeclaration) {
         CodeBlock code = CodeBlock.ofStatement("return $LService.getAll$Ls()", domainClassName.toLowerCase(), domainClassName);
         JavaMethodDeclaration getEntityByIdMethodDeclaration = JavaMethodDeclaration
-                .method("getAll" + domainClassName + "s")
+                .method("getAll" + plural(domainClassName))
                 .modifiers(PUBLIC)
                 .returning("java.util.List")
                 .returnGenerics(domainClassName)

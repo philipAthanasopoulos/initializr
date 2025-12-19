@@ -10,6 +10,7 @@ import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.FieldDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.contributor.ProjectContributor;
+import org.atteo.evo.inflector.English;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -19,6 +20,7 @@ import java.util.function.Supplier;
 
 import static java.lang.reflect.Modifier.PRIVATE;
 import static java.lang.reflect.Modifier.PUBLIC;
+import static org.atteo.evo.inflector.English.plural;
 
 public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>>
         implements ProjectContributor {
@@ -90,7 +92,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
             }
             case ONE_TO_MANY -> {
                 firstField = JavaFieldDeclaration
-                        .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                        .field(plural(secondTypeDeclaration.getName().toLowerCase()))
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
                         .returning("java.util.List");
@@ -118,7 +120,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                 firstTypeDeclaration.addFieldDeclaration(firstField);
 
                 secondField = JavaFieldDeclaration
-                        .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                        .field(plural(firstTypeDeclaration.getName().toLowerCase()))
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
                         .returning("java.util.List");
@@ -128,7 +130,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
             }
             case MANY_TO_MANY -> {
                 firstField = JavaFieldDeclaration
-                        .field(secondTypeDeclaration.getName().toLowerCase() + "s")
+                        .field(plural(secondTypeDeclaration.getName().toLowerCase()))
                         .returnGenerics(secondTypeDeclaration.getName())
                         .modifiers(PRIVATE)
                         .returning("java.util.List");
@@ -136,7 +138,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                 firstTypeDeclaration.addFieldDeclaration(firstField);
 
                 secondField = JavaFieldDeclaration
-                        .field(firstTypeDeclaration.getName().toLowerCase() + "s")
+                        .field(plural(firstTypeDeclaration.getName().toLowerCase()))
                         .returnGenerics(firstTypeDeclaration.getName())
                         .modifiers(PRIVATE)
                         .returning("java.util.List");
@@ -152,7 +154,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
         domainClassTypeDeclaration.modifiers(PUBLIC);
         domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Entity"));
         domainClassTypeDeclaration.annotations().add(ClassName.of("jakarta.persistence.Table"),
-                (annotation) -> annotation.add("name", domainClassDescription.getClassName().toLowerCase() + "s"));
+                (annotation) -> annotation.add("name", plural(domainClassDescription.getClassName().toLowerCase())));
 
         generateFields(domainClassDescription, domainClassTypeDeclaration);
 
@@ -208,7 +210,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
             String first = association.getFirstClassName();
             String second = association.getSecondClassName();
             String current = domainClassDescription.getClassName();
-           if (first.equals(current)) {
+            if (first.equals(current)) {
                 switch (association.getAssotiationType()) {
                     case ONE_TO_ONE, MANY_TO_ONE -> {
                         String fieldName = second.toLowerCase();
@@ -229,7 +231,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         domainClassTypeDeclaration.addMethodDeclaration(setter);
                     }
                     case ONE_TO_MANY, MANY_TO_MANY -> {
-                        String fieldName = second.toLowerCase() + "s";
+                        String fieldName = plural(second.toLowerCase());
                         CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
                         JavaMethodDeclaration getter = JavaMethodDeclaration
                                 .method("get" + capitalize(fieldName))
@@ -268,7 +270,7 @@ public class DomainClassSourceCodeContributor<T extends TypeDeclaration, C exten
                         domainClassTypeDeclaration.addMethodDeclaration(setter);
                     }
                     case MANY_TO_ONE, MANY_TO_MANY -> {
-                        String fieldName = first.toLowerCase() + "s";
+                        String fieldName = plural(first.toLowerCase());
                         CodeBlock code = CodeBlock.ofStatement("return this.$L", fieldName);
                         JavaMethodDeclaration getter = JavaMethodDeclaration
                                 .method("get" + capitalize(fieldName))

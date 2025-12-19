@@ -8,6 +8,7 @@ import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
 import io.spring.initializr.generator.project.DomainClassDescription;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.contributor.ProjectContributor;
+import org.atteo.evo.inflector.English;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import static java.lang.reflect.Modifier.*;
+import static org.atteo.evo.inflector.English.plural;
 
 public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, C extends CompilationUnit<T>, S extends SourceCode<T, C>> implements ProjectContributor {
 
@@ -54,7 +56,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
         controllerTypeDeclaration.modifiers(PUBLIC);
         controllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.stereotype.Controller"));
         controllerTypeDeclaration.annotations().add(ClassName.of("org.springframework.web.bind.annotation.RequestMapping"),
-                (annotation) -> annotation.add("value", "/" + domainClassName.toLowerCase() + "s"));
+                (annotation) -> annotation.add("value", "/" + plural(domainClassName.toLowerCase())));
         String domainClassServiceName = domainClassName.toLowerCase() + "Service";
 
         JavaFieldDeclaration serviceFieldDeclaration = addEntityServiceField(domainClassServiceName, domainClassName, controllerTypeDeclaration);
@@ -74,7 +76,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
 
         CodeBlock code = CodeBlock.builder()
                 .addStatement("$L.save$L($L)", serviceFieldDeclaration.getName(), domainClassName, domainClassName.toLowerCase())
-                .addStatement("return $S", "redirect:/" + domainClassName.toLowerCase() + "s")
+                .addStatement("return $S", "redirect:/" + plural(domainClassName.toLowerCase()))
                 .build();
         JavaMethodDeclaration createMethod = JavaMethodDeclaration
                 .method("create")
@@ -121,7 +123,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
 
     private void addListMethod(JavaTypeDeclaration controllerTypeDeclaration, JavaFieldDeclaration serviceFieldDeclaration, String domainClassName) {
         CodeBlock code = CodeBlock.builder()
-                .addStatement("model.addAttribute($S, $L.getAll$Ls())", domainClassName.toLowerCase() + "s", serviceFieldDeclaration.getName(), domainClassName)
+                .addStatement("model.addAttribute($S, $L.getAll$Ls())", plural(domainClassName.toLowerCase()), serviceFieldDeclaration.getName(), domainClassName)
                 .addStatement("return $S", domainClassName.toLowerCase() + "/list")
                 .build();
 
@@ -170,7 +172,7 @@ public class FrontendControllerSourceCodeContributor<T extends TypeDeclaration, 
 
         CodeBlock code = CodeBlock.builder()
                 .addStatement("$L.update$L($L, id)", serviceFieldDeclaration.getName(), domainClassName, domainClassName.toLowerCase())
-                .addStatement("return $S", "redirect:/" + domainClassName.toLowerCase() + "s")
+                .addStatement("return $S", "redirect:/" + plural(domainClassName.toLowerCase()))
                 .build();
         JavaMethodDeclaration createMethod = JavaMethodDeclaration
                 .method("submitEdit")
