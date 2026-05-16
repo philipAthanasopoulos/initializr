@@ -131,4 +131,15 @@ public class JavaProjectGenerationConfiguration {
                 testApplicationTypeCustomizers, testSourceCodeCustomizers);
     }
 
+    @Bean
+    McpServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mcpServiceSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        McpServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mcpServiceSourceCodeContributor = new McpServiceSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return mcpServiceSourceCodeContributor;
+    }
+
 }
