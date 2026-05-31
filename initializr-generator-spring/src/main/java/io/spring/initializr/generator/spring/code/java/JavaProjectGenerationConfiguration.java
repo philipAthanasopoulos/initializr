@@ -18,21 +18,10 @@ package io.spring.initializr.generator.spring.code.java;
 
 import io.spring.initializr.generator.condition.ConditionalOnLanguage;
 import io.spring.initializr.generator.io.IndentingWriterFactory;
-import io.spring.initializr.generator.language.java.JavaCompilationUnit;
-import io.spring.initializr.generator.language.java.JavaLanguage;
-import io.spring.initializr.generator.language.java.JavaSourceCode;
-import io.spring.initializr.generator.language.java.JavaSourceCodeWriter;
-import io.spring.initializr.generator.language.java.JavaTypeDeclaration;
+import io.spring.initializr.generator.language.java.*;
 import io.spring.initializr.generator.project.ProjectDescription;
 import io.spring.initializr.generator.project.ProjectGenerationConfiguration;
-import io.spring.initializr.generator.spring.code.MainApplicationTypeCustomizer;
-import io.spring.initializr.generator.spring.code.MainCompilationUnitCustomizer;
-import io.spring.initializr.generator.spring.code.MainSourceCodeCustomizer;
-import io.spring.initializr.generator.spring.code.MainSourceCodeProjectContributor;
-import io.spring.initializr.generator.spring.code.TestApplicationTypeCustomizer;
-import io.spring.initializr.generator.spring.code.TestSourceCodeCustomizer;
-import io.spring.initializr.generator.spring.code.TestSourceCodeProjectContributor;
-
+import io.spring.initializr.generator.spring.code.*;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -48,34 +37,109 @@ import org.springframework.context.annotation.Import;
 @Import(JavaProjectGenerationDefaultContributorsConfiguration.class)
 public class JavaProjectGenerationConfiguration {
 
-	private final ProjectDescription description;
+    private final ProjectDescription description;
 
-	public JavaProjectGenerationConfiguration(ProjectDescription description) {
-		this.description = description;
-	}
+    public JavaProjectGenerationConfiguration(ProjectDescription description) {
+        this.description = description;
+    }
 
-	@Bean
-	JavaSourceCodeWriter javaSourceCodeWriter(IndentingWriterFactory indentingWriterFactory) {
-		return new JavaSourceCodeWriter(indentingWriterFactory);
-	}
+    @Bean
+    JavaSourceCodeWriter javaSourceCodeWriter(IndentingWriterFactory indentingWriterFactory) {
+        return new JavaSourceCodeWriter(indentingWriterFactory);
+    }
 
-	@Bean
-	MainSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mainJavaSourceCodeProjectContributor(
-			ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
-			ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
-			ObjectProvider<MainSourceCodeCustomizer<?, ?, ?>> mainSourceCodeCustomizers,
-			JavaSourceCodeWriter javaSourceCodeWriter) {
-		return new MainSourceCodeProjectContributor<>(this.description, JavaSourceCode::new, javaSourceCodeWriter,
-				mainApplicationTypeCustomizers, mainCompilationUnitCustomizers, mainSourceCodeCustomizers);
-	}
+    @Bean
+    MainSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mainJavaSourceCodeProjectContributor(
+            ObjectProvider<MainApplicationTypeCustomizer<?>> mainApplicationTypeCustomizers,
+            ObjectProvider<MainCompilationUnitCustomizer<?, ?>> mainCompilationUnitCustomizers,
+            ObjectProvider<MainSourceCodeCustomizer<?, ?, ?>> mainSourceCodeCustomizers,
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        return new MainSourceCodeProjectContributor<>(this.description, JavaSourceCode::new, javaSourceCodeWriter,
+                mainApplicationTypeCustomizers, mainCompilationUnitCustomizers, mainSourceCodeCustomizers);
+    }
 
-	@Bean
-	TestSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> testJavaSourceCodeProjectContributor(
-			ObjectProvider<TestApplicationTypeCustomizer<?>> testApplicationTypeCustomizers,
-			ObjectProvider<TestSourceCodeCustomizer<?, ?, ?>> testSourceCodeCustomizers,
-			JavaSourceCodeWriter javaSourceCodeWriter) {
-		return new TestSourceCodeProjectContributor<>(this.description, JavaSourceCode::new, javaSourceCodeWriter,
-				testApplicationTypeCustomizers, testSourceCodeCustomizers);
-	}
+    @Bean
+    DomainClassSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> domainClassSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        DomainClassSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> domainClassSourceCodeContributor = new DomainClassSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        domainClassSourceCodeContributor.setDomainClassDescriptions(this.description.getDomainClassDescriptions());
+        return domainClassSourceCodeContributor;
+    }
+
+    @Bean
+    FrontendControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> frontendControllerSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        FrontendControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> frontendControllerSourceCodeContributor = new FrontendControllerSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return frontendControllerSourceCodeContributor;
+    }
+
+    @Bean
+    ThymeleafTemplateContributor templateContributor() {
+        ThymeleafTemplateContributor thymeleafTemplateContributor = new ThymeleafTemplateContributor(
+                this.description
+        );
+        return thymeleafTemplateContributor;
+    }
+
+    @Bean
+    RestControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        RestControllerSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor = new RestControllerSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return restControllerSourceCodeContributor;
+    }
+
+    @Bean
+    ServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> serviceSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        ServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> serviceSourceCodeContributor = new ServiceSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return serviceSourceCodeContributor;
+    }
+
+    @Bean
+    RepositorySourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> repositorySourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        RepositorySourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> restControllerSourceCodeContributor = new RepositorySourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return restControllerSourceCodeContributor;
+    }
+
+    @Bean
+    TestSourceCodeProjectContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> testJavaSourceCodeProjectContributor(
+            ObjectProvider<TestApplicationTypeCustomizer<?>> testApplicationTypeCustomizers,
+            ObjectProvider<TestSourceCodeCustomizer<?, ?, ?>> testSourceCodeCustomizers,
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        return new TestSourceCodeProjectContributor<>(this.description, JavaSourceCode::new, javaSourceCodeWriter,
+                testApplicationTypeCustomizers, testSourceCodeCustomizers);
+    }
+
+    @Bean
+    McpServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mcpServiceSourceCodeContributor(
+            JavaSourceCodeWriter javaSourceCodeWriter) {
+        McpServiceSourceCodeContributor<JavaTypeDeclaration, JavaCompilationUnit, JavaSourceCode> mcpServiceSourceCodeContributor = new McpServiceSourceCodeContributor<>(
+                javaSourceCodeWriter,
+                JavaSourceCode::new,
+                this.description
+        );
+        return mcpServiceSourceCodeContributor;
+    }
 
 }

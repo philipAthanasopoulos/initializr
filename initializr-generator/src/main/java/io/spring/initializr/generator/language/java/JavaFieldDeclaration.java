@@ -19,6 +19,8 @@ package io.spring.initializr.generator.language.java;
 import io.spring.initializr.generator.language.Annotatable;
 import io.spring.initializr.generator.language.AnnotationContainer;
 
+import java.util.List;
+
 /**
  * Declaration of a field written in Java.
  *
@@ -26,130 +28,153 @@ import io.spring.initializr.generator.language.AnnotationContainer;
  */
 public final class JavaFieldDeclaration implements Annotatable {
 
-	private final AnnotationContainer annotations = new AnnotationContainer();
+    private final AnnotationContainer annotations = new AnnotationContainer();
 
-	private final int modifiers;
+    private final int modifiers;
 
-	private final String name;
+    private final String name;
 
-	private final String returnType;
+    private final String returnType;
 
-	private final Object value;
+    private final List<String> returnTypeGenerics;
 
-	private final boolean initialized;
+    private final Object value;
 
-	private JavaFieldDeclaration(Builder builder) {
-		this.modifiers = builder.modifiers;
-		this.name = builder.name;
-		this.returnType = builder.returnType;
-		this.value = builder.value;
-		this.initialized = builder.initialized;
-	}
+    private final boolean initialized;
 
-	/**
-	 * Creates a new builder for the field with the given name.
-	 * @param name the field name
-	 * @return the builder
-	 */
-	public static Builder field(String name) {
-		return new Builder(name);
-	}
+    private JavaFieldDeclaration(Builder builder) {
+        this.modifiers = builder.modifiers;
+        this.name = builder.name;
+        this.returnType = builder.returnType;
+        this.returnTypeGenerics = builder.returnTypeGenerics;
+        this.value = builder.value;
+        this.initialized = builder.initialized;
+    }
 
-	@Override
-	public AnnotationContainer annotations() {
-		return this.annotations;
-	}
+    /**
+     * Creates a new builder for the field with the given name.
+     *
+     * @param name the field name
+     * @return the builder
+     */
+    public static Builder field(String name) {
+        return new Builder(name);
+    }
 
-	/**
-	 * Return the modifiers.
-	 * @return the modifiers
-	 */
-	public int getModifiers() {
-		return this.modifiers;
-	}
+    @Override
+    public AnnotationContainer annotations() {
+        return this.annotations;
+    }
 
-	/**
-	 * Return the name.
-	 * @return the name
-	 */
-	public String getName() {
-		return this.name;
-	}
+    /**
+     * Return the modifiers.
+     *
+     * @return the modifiers
+     */
+    public int getModifiers() {
+        return this.modifiers;
+    }
 
-	/**
-	 * Return the return type.
-	 * @return the return type
-	 */
-	public String getReturnType() {
-		return this.returnType;
-	}
+    /**
+     * Return the name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return this.name;
+    }
 
-	/**
-	 * Return the value.
-	 * @return the value
-	 */
-	public Object getValue() {
-		return this.value;
-	}
+    /**
+     * Return the return type.
+     *
+     * @return the return type
+     */
+    public String getReturnType() {
+        return this.returnType;
+    }
 
-	/**
-	 * Return whether this field is initialized.
-	 * @return whether the field is initialized.
-	 */
-	public boolean isInitialized() {
-		return this.initialized;
-	}
+    public List<String> getReturnTypeGenerics() {
+        return this.returnTypeGenerics;
+    }
 
-	/**
-	 * Builder for creating a {@link JavaFieldDeclaration}.
-	 */
-	public static final class Builder {
+    /**
+     * Return the value.
+     *
+     * @return the value
+     */
+    public Object getValue() {
+        return this.value;
+    }
 
-		private final String name;
+    /**
+     * Return whether this field is initialized.
+     *
+     * @return whether the field is initialized.
+     */
+    public boolean isInitialized() {
+        return this.initialized;
+    }
 
-		private String returnType;
+    /**
+     * Builder for creating a {@link JavaFieldDeclaration}.
+     */
+    public static final class Builder {
 
-		private int modifiers;
+        private final String name;
 
-		private Object value;
+        private String returnType;
 
-		private boolean initialized;
+        private List<String> returnTypeGenerics;
 
-		private Builder(String name) {
-			this.name = name;
-		}
+        private int modifiers;
 
-		/**
-		 * Sets the modifiers.
-		 * @param modifiers the modifiers
-		 * @return this for method chaining
-		 */
-		public Builder modifiers(int modifiers) {
-			this.modifiers = modifiers;
-			return this;
-		}
+        private Object value;
 
-		/**
-		 * Sets the value.
-		 * @param value the value
-		 * @return this for method chaining
-		 */
-		public Builder value(Object value) {
-			this.value = value;
-			this.initialized = true;
-			return this;
-		}
+        private boolean initialized;
 
-		/**
-		 * Sets the return type.
-		 * @param returnType the return type
-		 * @return this for method chaining
-		 */
-		public JavaFieldDeclaration returning(String returnType) {
-			this.returnType = returnType;
-			return new JavaFieldDeclaration(this);
-		}
+        private Builder(String name) {
+            this.name = name;
+        }
 
-	}
+        /**
+         * Sets the modifiers.
+         *
+         * @param modifiers the modifiers
+         * @return this for method chaining
+         */
+        public Builder modifiers(int modifiers) {
+            this.modifiers = modifiers;
+            return this;
+        }
+
+        /**
+         * Sets the value.
+         *
+         * @param value the value
+         * @return this for method chaining
+         */
+        public Builder value(Object value) {
+            this.value = value;
+            this.initialized = true;
+            return this;
+        }
+
+        /**
+         * Sets the return type.
+         *
+         * @param returnType the return type
+         * @return this for method chaining
+         */
+        public JavaFieldDeclaration returning(String returnType) {
+            this.returnType = returnType;
+            return new JavaFieldDeclaration(this);
+        }
+
+        public Builder returnGenerics(String ... generics) {
+            this.returnTypeGenerics = List.of(generics);
+            return this;
+        }
+
+    }
 
 }
