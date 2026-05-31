@@ -54,6 +54,7 @@ public class ApplicationPropertiesContributor implements ProjectContributor {
         properties.add("spring.datasource.password", "${JDBC_DATABASE_PASSWORD}");
         properties.add("spring.jpa.hibernate.ddl-auto", "update");
         properties.add("server.port", "8000");
+        //TODO check if project requests MCP server creation
         properties.add("spring.ai.mcp.server.protocol", "streamable");
         properties.add("spring.ai.mcp.server.type", "SYNC");
         properties.add("spring.ai.mcp.server.name", "${MCP-SERVER-NAME}");
