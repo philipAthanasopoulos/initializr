@@ -16,14 +16,14 @@
 
 package io.spring.initializr.generator.spring.properties;
 
+import io.spring.initializr.generator.project.contributor.ProjectContributor;
+
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-
-import io.spring.initializr.generator.project.contributor.ProjectContributor;
 
 /**
  * A {@link ProjectContributor} that contributes a {@code application.properties} file to
@@ -34,25 +34,36 @@ import io.spring.initializr.generator.project.contributor.ProjectContributor;
  */
 public class ApplicationPropertiesContributor implements ProjectContributor {
 
-	private static final String FILE = "src/main/resources/application.properties";
+    private static final String FILE = "src/main/resources/application.properties";
 
-	private final ApplicationProperties properties;
+    private final ApplicationProperties properties;
 
-	public ApplicationPropertiesContributor(ApplicationProperties properties) {
-		this.properties = properties;
-	}
+    public ApplicationPropertiesContributor(ApplicationProperties properties) {
+        this.properties = properties;
+    }
 
-	@Override
-	public void contribute(Path projectRoot) throws IOException {
-		Path output = projectRoot.resolve(FILE);
-		if (!Files.exists(output)) {
-			Files.createDirectories(output.getParent());
-			Files.createFile(output);
-		}
-		try (PrintWriter writer = new PrintWriter(Files.newOutputStream(output, StandardOpenOption.APPEND), false,
-				StandardCharsets.UTF_8)) {
-			this.properties.writeTo(writer);
-		}
-	}
+    @Override
+    public void contribute(Path projectRoot) throws IOException {
+        Path output = projectRoot.resolve(FILE);
+        if (!Files.exists(output)) {
+            Files.createDirectories(output.getParent());
+            Files.createFile(output);
+        }
+        properties.add("spring.datasource.url", "${JDBC_DATABASE_URL}");
+        properties.add("spring.datasource.username", "${JDBC_DATABASE_USERNAME}");
+        properties.add("spring.datasource.password", "${JDBC_DATABASE_PASSWORD}");
+        properties.add("spring.jpa.hibernate.ddl-auto", "update");
+        properties.add("server.port", "8000");
+        //TODO check if project requests MCP server creation
+        properties.add("spring.ai.mcp.server.protocol", "streamable");
+        properties.add("spring.ai.mcp.server.type", "SYNC");
+        properties.add("spring.ai.mcp.server.name", "${MCP-SERVER-NAME}");
+
+
+        try (PrintWriter writer = new PrintWriter(Files.newOutputStream(output, StandardOpenOption.APPEND), false,
+                StandardCharsets.UTF_8)) {
+            this.properties.writeTo(writer);
+        }
+    }
 
 }
